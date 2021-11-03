@@ -41,7 +41,7 @@ Detecting KVM
 
 Detecting Wine
 
-Making Sandboxie Crash Your Application (discoverd by me)
+Making Sandboxie Crash Your Application
 # Anti Dll Injection
 Patching LoadLibraryA
 
