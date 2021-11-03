@@ -1,7 +1,0 @@
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\bin\Debug\AntiCrack-DotNet.exe.config
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\bin\Debug\AntiCrack-DotNet.exe
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\bin\Debug\AntiCrack-DotNet.pdb
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\obj\Debug\AntiCrack-DotNet.csproj.CoreCompileInputs.cache
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\obj\Debug\AntiCrack-DotNet.exe
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\obj\Debug\AntiCrack-DotNet.pdb
-C:\Users\ezzal\source\repos\AntiCrack-DotNet\AntiCrack-DotNet\obj\Debug\AntiCrack-DotNet.csproj.AssemblyReference.cache
