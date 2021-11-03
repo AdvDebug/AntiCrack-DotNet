@@ -1,48 +1,48 @@
 # AntiCrack DotNet
 project contains a lot of anti debugging and anti virtualization techniques, etc....
 # Anti Debugging
-*CloseHandle
+CloseHandle
 
-*Hide Threads From Debugger
+Hide Threads From Debugger
 
-*IsDebuggerPresent
+IsDebuggerPresent
 
-*GetTickCount
+GetTickCount
 
-*OutputDebugString
+OutputDebugString
 
-*OllyDbg Format String Exploit
+OllyDbg Format String Exploit
 
-*FindWindow (looks for bad window names)
+FindWindow (looks for bad window names)
 
-*CheckRemoteDebugger / NtQueryInformationProcess
+CheckRemoteDebugger / NtQueryInformationProcess
 
-*Patching DbgUiRemoteBreakin
+Patching DbgUiRemoteBreakin
 
-*Debugger.IsAttached
+Debugger.IsAttached
 
-*Others....
+Others....
 # Anti Virtualization
-*Detecting Sandboxie
+Detecting Sandboxie
 
-*Detecting Comodo Container
+Detecting Comodo Container
 
-*Detecting Qihoo360 Sandbox
+Detecting Qihoo360 Sandbox
 
-*Detecting Cuckoo Sandbox
+Detecting Cuckoo Sandbox
 
-*Detecting VirtualBox and VMware
+Detecting VirtualBox and VMware
 
-*Detecting HyperV
+Detecting HyperV
 
-*Detecting Emulation
+Detecting Emulation
 
-*Detecting KVM
+Detecting KVM
 
-*Detecting Wine
+Detecting Wine
 
-*Making Sandboxie Crash Your Application (discoverd by me)
+Making Sandboxie Crash Your Application (discoverd by me)
 # Anti Dll Injection
-*Patching LoadLibraryA
+Patching LoadLibraryA
 
-*Patching LoadLibraryW
+Patching LoadLibraryW
