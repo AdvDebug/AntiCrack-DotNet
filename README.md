@@ -37,6 +37,8 @@ Detecting HyperV
 
 Detecting Emulation
 
+Checking For Blacklisted Usernames
+
 Detecting KVM
 
 Detecting Wine
