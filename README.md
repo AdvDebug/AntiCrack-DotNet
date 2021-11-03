@@ -1,2 +1,2 @@
 # AntiCrack-DotNet
-project contains a lot of anti debugging and anti virtualization techniques.
+project contains a lot of anti debugging and anti virtualization techniques, etc....
