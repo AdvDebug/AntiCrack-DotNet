@@ -1,5 +1,5 @@
 # AntiCrack DotNet
-project contains a lot of anti debugging and anti virtualization techniques, etc....
+project contains a lot of anti debugging and anti virtualization techniques, etc.... Notice trying Crash Non-Managed Debuggers with a Debugger Breakpoint technique may stop the application from continue checking, if that happens just restart the program.
 # Anti Debugging
 CloseHandle
 
