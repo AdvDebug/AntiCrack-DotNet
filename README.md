@@ -48,3 +48,6 @@ Making Sandboxie Crash Your Application
 Patching LoadLibraryA
 
 Patching LoadLibraryW
+# Preview
+<img width="960" alt="AntiCrackDotNet" src="https://user-images.githubusercontent.com/90452585/140987369-f05706fa-7065-487f-8c5d-9e62add2170d.PNG">
+
