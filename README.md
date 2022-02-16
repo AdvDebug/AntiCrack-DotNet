@@ -43,7 +43,7 @@ Detecting KVM
 
 Detecting Wine
 
-Making Sandboxie Crash Your Application
+Making Sandboxie Crash Your Application ( this exploit no longer works, it's patched by sandboxie, that's what i get for making things public :) )
 # Anti Dll Injection
 Patching LoadLibraryA
 
