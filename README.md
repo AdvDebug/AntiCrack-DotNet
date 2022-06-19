@@ -53,5 +53,4 @@ Patching LoadLibraryW
 
 Taking Advantage of Binary Image Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 # Preview
-<img width="960" alt="AntiCrackDotNet" src="https://user-images.githubusercontent.com/90452585/140987369-f05706fa-7065-487f-8c5d-9e62add2170d.PNG">
-
+<img width="960" alt="AntiCrackDotNet" src="https://user-images.githubusercontent.com/90452585/174461821-1c033bc6-6eaf-441b-b798-196858495e71.PNG">
