@@ -15,11 +15,13 @@ OllyDbg Format String Exploit
 
 FindWindow (looks for bad window names)
 
-CheckRemoteDebugger / NtQueryInformationProcess
+NtQueryInformationProcess: ProcessDebugFlags, ProcessDebugPort, ProcessDebugObjectHandle
 
 Patching DbgUiRemoteBreakin
 
 Debugger.IsAttached
+
+Detection of Hardware Breakpoints
 
 Others....
 # Anti Virtualization
@@ -48,6 +50,8 @@ Making Sandboxie Crash Your Application (this exploit no longer works, it's patc
 Patching LoadLibraryA
 
 Patching LoadLibraryW
+
+Taking Advantage of Binary Image Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 # Preview
 <img width="960" alt="AntiCrackDotNet" src="https://user-images.githubusercontent.com/90452585/140987369-f05706fa-7065-487f-8c5d-9e62add2170d.PNG">
 
