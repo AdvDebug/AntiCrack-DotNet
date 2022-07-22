@@ -67,6 +67,7 @@ Taking Advantage of Binary Image Signature Mitigation Policy to prevent injectin
 
 ## Other Detections
 Checking if Unsigned Drivers are allowed to load
+
 Checking if Test-Signed Drivers are allowed to load
 ## Hooks Detection
 Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for JMP and NOP Instructions on Functions Addresses (Most Effective on x64)
