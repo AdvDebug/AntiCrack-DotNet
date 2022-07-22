@@ -11,7 +11,7 @@ IsDebuggerPresent
 
 NtQueryInformationProcess: ProcessDebugFlags, ProcessDebugPort, ProcessDebugObjectHandle
 
-CloseHandle: Invalid Handle, Protected Handle
+NtClose: Invalid Handle, Protected Handle
 
 Parent Process Checking (Checks if parent are explorer.exe or cmd.exe)
 
