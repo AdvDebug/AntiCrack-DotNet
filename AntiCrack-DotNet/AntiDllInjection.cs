@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
@@ -44,7 +43,7 @@ namespace AntiCrack_DotNet
             return "Failed";
         }
 
-        public static string BinarySignatureMitigationAntiDllInjection()
+        public static string BinaryImageSignatureMitigationAntiDllInjection()
         {
             Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY OnlyMicrosoftBinaries = new Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY();
             OnlyMicrosoftBinaries.MicrosoftSignedOnly = 1;
