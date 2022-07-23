@@ -30,46 +30,46 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 * Patching DbgUiRemoteBreakin and DbgBreakPoint (Anti-Debugger Attaching)
 
 ## Anti Virtualization
-Detecting Sandboxie
+* Detecting Sandboxie
 
-Detecting Comodo Container
+* Detecting Comodo Container
 
-Detecting Qihoo360 Sandbox
+* Detecting Qihoo360 Sandbox
 
-Detecting Cuckoo Sandbox
+* Detecting Cuckoo Sandbox
 
-Detecting VirtualBox and VMware
+* Detecting VirtualBox and VMware
 
-Detecting HyperV
+* Detecting HyperV
 
-Detecting Emulation
+* Detecting Emulation
 
-Checking For Blacklisted Usernames
+* Checking For Blacklisted Usernames
 
-Detecting KVM
+* Detecting KVM
 
-Detecting Wine
+* Detecting Wine
 
-Checking For Known Bad VM File Locations
+* Checking For Known Bad VM File Locations
 
-Checking For Known Bad Process Names
+* Checking For Known Bad Process Names
 
-Checking For Ports on the system (useful if the VM or the sandbox have no ports connected)
+* Checking For Ports on the system (useful if the VM or the sandbox have no ports connected)
 
-Making Sandboxie Crash Your Application (this exploit no longer works, it's patched by sandboxie, that's what i get for making things public :), now it works only with older versions of sandboxie)
+* Making Sandboxie Crash Your Application (this exploit no longer works, it's patched by sandboxie, that's what i get for making things public :), now it works only with older versions of sandboxie)
 
 ## Anti Dll Injection
-Patching LoadLibraryA
+* Patching LoadLibraryA
 
-Patching LoadLibraryW
+* Patching LoadLibraryW
 
-Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
+* Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 
 ## Other Detections
-Checking if Unsigned Drivers are allowed to load
+* Checking if Unsigned Drivers are allowed to load
 
-Checking if Test-Signed Drivers are allowed to load
+* Checking if Test-Signed Drivers are allowed to load
 ## Hooks Detection
-Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for JMP and NOP Instructions on Functions Addresses (Most Effective on x64)
+* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for JMP and NOP Instructions on Functions Addresses (Most Effective on x64)
 # Preview
 <img width="960" alt="AntiCrackDotNet_1 2" src="https://user-images.githubusercontent.com/90452585/180578537-d3817dc7-6398-4c3b-b7aa-a46d6a604d45.PNG">
