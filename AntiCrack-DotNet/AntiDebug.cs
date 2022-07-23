@@ -309,10 +309,6 @@ namespace AntiCrack_DotNet
                         }
                         return true;
                     }
-                    else
-                    {
-                        System.Windows.Forms.MessageBox.Show("1");
-                    }
                 }
             }
             catch{};
