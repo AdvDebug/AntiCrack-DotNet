@@ -1,5 +1,6 @@
 # AntiCrack DotNet
 A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in C#.
+<img width="960" alt="AntiCrackDotNet_1 2" src="https://user-images.githubusercontent.com/90452585/180578537-d3817dc7-6398-4c3b-b7aa-a46d6a604d45.PNG">
 ## Anti Debugging
 * GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
 
@@ -71,5 +72,3 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 * Checking if Test-Signed Drivers are allowed to load
 ## Hooks Detection
 * Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for JMP and NOP Instructions on Functions Addresses (Most Effective on x64)
-# Preview
-<img width="960" alt="AntiCrackDotNet_1 2" src="https://user-images.githubusercontent.com/90452585/180578537-d3817dc7-6398-4c3b-b7aa-a46d6a604d45.PNG">
