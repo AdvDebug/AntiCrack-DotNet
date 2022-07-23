@@ -1,7 +1,7 @@
 # AntiCrack DotNet
 A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in C#.
 ## Anti Debugging
-GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
+* GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
 
 Debugger.IsAttached
 
