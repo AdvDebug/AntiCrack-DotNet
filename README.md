@@ -3,31 +3,31 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 ## Anti Debugging
 * GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
 
-Debugger.IsAttached
+* Debugger.IsAttached
 
-Hide Threads From Debugger
+* Hide Threads From Debugger
 
-IsDebuggerPresent
+* IsDebuggerPresent
 
-NtQueryInformationProcess: ProcessDebugFlags, ProcessDebugPort, ProcessDebugObjectHandle
+* NtQueryInformationProcess: ProcessDebugFlags, ProcessDebugPort, ProcessDebugObjectHandle
 
-NtClose: Invalid Handle, Protected Handle
+* NtClose: Invalid Handle, Protected Handle
 
-Parent Process Checking (Checks if parent are explorer.exe or cmd.exe)
+* Parent Process Checking (Checks if parent are explorer.exe or cmd.exe)
 
-Detection of Hardware Breakpoints
+* Detection of Hardware Breakpoints
 
-FindWindow (looks for bad window names)
+* FindWindow (looks for bad window names)
 
-GetTickCount
+* GetTickCount
 
-OutputDebugString
+* OutputDebugString
 
-Crashing Non-Managed Debuggers with a Debugger Breakpoint
+* Crashing Non-Managed Debuggers with a Debugger Breakpoint
 
-OllyDbg Format String Exploit
+* OllyDbg Format String Exploit
 
-Patching DbgUiRemoteBreakin and DbgBreakPoint (Anti-Debugger Attaching)
+* Patching DbgUiRemoteBreakin and DbgBreakPoint (Anti-Debugger Attaching)
 
 ## Anti Virtualization
 Detecting Sandboxie
