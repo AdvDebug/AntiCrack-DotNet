@@ -74,3 +74,6 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 * Checking if Test-Signed Drivers are allowed to load
 ## Hooks Detection
 * Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for JMP and NOP Instructions on Functions Addresses (Most Effective on x64)
+
+# Notice
+This Project are created for educational purposes only, also this project are licensed under MIT License.
