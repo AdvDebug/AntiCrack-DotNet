@@ -69,9 +69,9 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 * Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 
 ## Other Detections
-* Checking if Unsigned Drivers are Allowed to Load
+* Detecting if Unsigned Drivers are Allowed to Load
 
-* Checking if Test-Signed Drivers are Allowed to Load
+* Detecting if Test-Signed Drivers are Allowed to Load
 
 * Detecting if Kernel Debugging are Enabled on the System
 
