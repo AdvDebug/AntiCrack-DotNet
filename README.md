@@ -76,7 +76,7 @@ A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in
 * Detecting if Kernel Debugging are Enabled on the System
 
 ## Hooks Detection
-* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64)
+* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64), and it can also detect some sandboxes which uses hooking to monitor application behaviour/activity (like <a href="https://github.com/sandboxie-plus/Sandboxie">Sandboxie/Sandboxie Plus</a>, <a href="https://www.hybrid-analysis.com">Hybrid Analysis</a>, and a lot of other online malware analysis websites/applications).
 
 # Notice
 This Project are created for educational purposes only, also this project are licensed under MIT License.
