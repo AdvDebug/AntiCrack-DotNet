@@ -1,5 +1,5 @@
 # AntiCrack DotNet
-A C# Project which Contains the Most Advanced Anti-Cracking Methods Ever Made in C#, Contributions are welcome. (also feel free to open an issue for adding additional anti-debugging features, etc)
+A C# Project which Contains some Anti-Cracking, anti memory injection techniques, etc. (also feel free to open an issue for adding additional anti-debugging features, etc)
 
 <img width="960" alt="AntiCrackDotNet_1 2" src="https://user-images.githubusercontent.com/90452585/180578537-d3817dc7-6398-4c3b-b7aa-a46d6a604d45.PNG">
 
