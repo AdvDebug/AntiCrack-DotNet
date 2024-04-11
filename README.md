@@ -12,6 +12,10 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 * IsDebuggerPresent
 
+* NtSetDebugFilterState
+
+* Page Guard Breakpoints Detection
+
 * NtQueryInformationProcess: ProcessDebugFlags, ProcessDebugPort, ProcessDebugObjectHandle
 
 * NtClose: Invalid Handle, Protected Handle
@@ -61,12 +65,16 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 * Making Sandboxie Crash Your Application (this exploit no longer works, it's patched by sandboxie, that's what i get for making things public :), now it works only with older versions of sandboxie)
 
+* Checking for devices created by VMs or Sandboxes
+
 ## Anti Dll Injection
 * Patching LoadLibraryA
 
 * Patching LoadLibraryW
 
 * Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
+
+* Checking if any injected libraries are present (simple dlls path whitelist check)
 
 ## Other Detections
 * Detecting if Unsigned Drivers are Allowed to Load
@@ -75,8 +83,10 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 * Detecting if Kernel Debugging are Enabled on the System
 
+* Detecting if Secure Boot are Enabled on the System
+
 ## Hooks Detection
-* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64), and it can also detect some sandboxes which uses hooking to monitor application behaviour/activity (like <a href="https://github.com/sandboxie-plus/Sandboxie">Sandboxie/Sandboxie Plus</a>, <a href="https://www.hybrid-analysis.com">Hybrid Analysis</a>, <a href="https://cuckoosandbox.org/">Cuckoo Sandbox</a>, and a lot of other online malware analysis websites/applications).
+* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64) and it detects user-mode anti anti-debuggers like scyllahide, and it can also detect some sandboxes which uses hooking to monitor application behaviour/activity (like <a href="https://github.com/sandboxie-plus/Sandboxie">Sandboxie/Sandboxie Plus</a>, <a href="https://www.hybrid-analysis.com">Hybrid Analysis</a>, <a href="https://cuckoosandbox.org/">Cuckoo Sandbox</a>, and a lot of other online malware analysis websites/applications).
 
 # Notice
 This Project are created for educational purposes only, also this project are licensed under MIT License.
