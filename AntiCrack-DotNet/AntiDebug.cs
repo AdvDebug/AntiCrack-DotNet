@@ -5,51 +5,53 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using static System.Net.WebRequestMethods;
+using System.Windows.Forms;
+using System.ServiceProcess;
+using System.Runtime.CompilerServices;
 
 namespace AntiCrack_DotNet
 {
     class AntiDebug
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool SetHandleInformation(IntPtr hObject, uint dwMask, uint dwFlags);
 
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern bool NtClose(IntPtr Handle);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr CreateMutexA(IntPtr lpMutexAttributes, bool bInitialOwner, string lpName);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool IsDebuggerPresent();
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool CheckRemoteDebuggerPresent(IntPtr Handle, ref bool CheckBool);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lib);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetProcAddress(IntPtr ModuleHandle, string Function);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool WriteProcessMemory(SafeHandle ProcHandle, IntPtr BaseAddress, byte[] Buffer, uint size, int NumOfBytes);
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool WriteProcessMemory(SafeHandle hProcess, IntPtr BaseAddress, byte[] Buffer, uint size, int NumOfBytes);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool ReadProcessMemory(SafeHandle hProcess, IntPtr BaseAddress, out byte[] Buffer, uint size, out int NumOfBytes);
 
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtSetInformationThread(IntPtr ThreadHandle, uint ThreadInformationClass, IntPtr ThreadInformation, int ThreadInformationLength);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr OpenThread(uint DesiredAccess, bool InheritHandle, int ThreadId);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern uint GetTickCount();
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern void OutputDebugStringA(string Text);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetCurrentThread();
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool GetThreadContext(IntPtr hThread, ref Structs.CONTEXT Context);
 
         [DllImport("ntdll.dll", SetLastError = true)]
@@ -61,7 +63,7 @@ namespace AntiCrack_DotNet
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern int QueryFullProcessImageNameA(SafeHandle hProcess, uint Flags, byte[] lpExeName, Int32[] lpdwSize);
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -72,6 +74,24 @@ namespace AntiCrack_DotNet
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowTextA(IntPtr HWND, StringBuilder WindowText, int nMaxCount);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern uint NtSetDebugFilterState(ulong ComponentId, uint Level, bool State);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern void GetSystemInfo(out Structs.SYSTEM_INFO lpSystemInfo);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern IntPtr memset(IntPtr Dst, int val, uint size);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize,uint dwFreeType);
 
         public static bool NtCloseAntiDebug_InvalidHandle()
         {
@@ -91,15 +111,19 @@ namespace AntiCrack_DotNet
             IntPtr hMutex = CreateMutexA(IntPtr.Zero, false, new Random().Next(0, 9999999).ToString());
             uint HANDLE_FLAG_PROTECT_FROM_CLOSE = 0x00000002;
             SetHandleInformation(hMutex, HANDLE_FLAG_PROTECT_FROM_CLOSE, HANDLE_FLAG_PROTECT_FROM_CLOSE);
+            bool Result = false;
             try
             {
                 NtClose(hMutex);
-                return false;
+                Result = false;
             }
             catch
             {
-                return true;
+                Result = true;
             }
+            SetHandleInformation(hMutex, HANDLE_FLAG_PROTECT_FROM_CLOSE, 0);
+            NtClose(hMutex);
+            return Result;
         }
 
         public static bool DebuggerIsAttached()
@@ -170,7 +194,10 @@ namespace AntiCrack_DotNet
                 foreach (string BadWindows in BadWindowNames)
                 {
                     if (GetWindow.MainWindowTitle.ToLower().Contains(BadWindows))
+                    {
+                        GetWindow.Close();
                         return true;
+                    }
                 }
             }
             return false;
@@ -180,15 +207,20 @@ namespace AntiCrack_DotNet
         {
             string[] BadWindowNames = { "x32dbg", "x64dbg", "windbg", "ollydbg", "dnspy", "immunity debugger", "hyperdbg", "debug", "debugger", "cheat engine", "cheatengine", "ida" };
             IntPtr HWND = GetForegroundWindow();
-            int WindowLength = GetWindowTextLengthA(HWND);
-            if (WindowLength != 0)
+            if (HWND != IntPtr.Zero)
             {
-                StringBuilder WindowName = new StringBuilder(WindowLength + 1);
-                GetWindowTextA(HWND, WindowName, WindowLength + 1);
-                foreach (string BadWindows in BadWindowNames)
+                int WindowLength = GetWindowTextLengthA(HWND);
+                if (WindowLength != 0)
                 {
-                    if (WindowName.ToString().ToLower().Contains(BadWindows))
-                        return true;
+                    StringBuilder WindowName = new StringBuilder(WindowLength + 1);
+                    GetWindowTextA(HWND, WindowName, WindowLength + 1);
+                    foreach (string BadWindows in BadWindowNames)
+                    {
+                        if (WindowName.ToString().ToLower().Contains(BadWindows))
+                        {
+                            return true;
+                        }
+                    }
                 }
             }
             return false;
@@ -224,12 +256,12 @@ namespace AntiCrack_DotNet
         public static bool GetTickCountAntiDebug()
         {
             uint Start = GetTickCount();
+            Thread.Sleep(0x10);
             return (GetTickCount() - Start) > 0x10;
         }
-
         public static bool OutputDebugStringAntiDebug()
         {
-            OutputDebugStringA("just testing some stuff...");
+            Debugger.Log(0, null, "just testing some stuff...");
             if (Marshal.GetLastWin32Error() == 0)
                 return true;
             return false;
@@ -237,7 +269,7 @@ namespace AntiCrack_DotNet
 
         public static void OllyDbgFormatStringExploit()
         {
-            OutputDebugStringA("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s");
+            Debugger.Log(0, null, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s");
         }
 
         public static bool DebugBreakAntiDebug()
@@ -259,16 +291,18 @@ namespace AntiCrack_DotNet
         {
             Structs.CONTEXT Context = new Structs.CONTEXT();
             Context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-            if (GetThreadContext(GetCurrentThread(), ref Context))
+            IntPtr CurrentThread = GetCurrentThread();
+            if (GetThreadContext(CurrentThread, ref Context))
             {
                 if ((Context.Dr1 != 0x00 || Context.Dr2 != 0x00 || Context.Dr3 != 0x00 || Context.Dr4 != 0x00 || Context.Dr5 != 0x00 || Context.Dr6 != 0x00 || Context.Dr7 != 0x00))
                 {
+                    NtClose(CurrentThread);
                     return true;
                 }
             }
+            NtClose(CurrentThread);
             return false;
         }
-
         private static string CleanPath(string Path)
         {
             string CleanedPath = null;
@@ -312,6 +346,47 @@ namespace AntiCrack_DotNet
                 }
             }
             catch{};
+            return false;
+        }
+
+        public static bool NtSetDebugFilterStateAntiDebug()
+        {
+            if (NtSetDebugFilterState(0, 0, true) != 0)
+                return false;
+            return true;
+        }
+
+        delegate int ExecutionDelegate();
+        public static bool PageGuardAntiDebug()
+        {
+            Structs.SYSTEM_INFO SysInfo = new Structs.SYSTEM_INFO();
+            GetSystemInfo(out SysInfo);
+            uint MEM_COMMIT = 0x00001000;
+            uint MEM_RESERVE = 0x00002000;
+            uint PAGE_EXECUTE_READWRITE = 0x40;
+            uint PAGE_GUARD = 0x100;
+            uint MEM_RELEASE = 0x00008000;
+            IntPtr AllocatedSpace = VirtualAlloc(IntPtr.Zero, SysInfo.PageSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+            if (AllocatedSpace != IntPtr.Zero)
+            {
+                memset(AllocatedSpace, 1, 0xC3);
+                uint OldProtect = 0;
+                if(VirtualProtect(AllocatedSpace, SysInfo.PageSize, PAGE_EXECUTE_READWRITE | PAGE_GUARD, out OldProtect))
+                {
+                    try
+                    {
+                        ExecutionDelegate IsDebugged = Marshal.GetDelegateForFunctionPointer<ExecutionDelegate>(AllocatedSpace);
+                        int Result = IsDebugged();
+                    }
+                    catch
+                    {
+                        VirtualFree(AllocatedSpace, SysInfo.PageSize, MEM_RELEASE);
+                        return false;
+                    }
+                    VirtualFree(AllocatedSpace, SysInfo.PageSize, MEM_RELEASE);
+                    return true;
+                }
+            }
             return false;
         }
     }

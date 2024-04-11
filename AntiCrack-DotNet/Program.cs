@@ -14,14 +14,14 @@ namespace AntiCrack_DotNet
             {
                 Console.Write(Text);
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.Write("[Bad]" + "\n\n");
+                Console.Write("[Bad]\n\n");
                 Console.ForegroundColor = ConsoleColor.White;
             }
             else
             {
                 Console.Write(Text);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.Write("[Good]" + "\n\n");
+                Console.Write("[Good]\n\n");
                 Console.ForegroundColor = ConsoleColor.White;
             }
         }
@@ -32,21 +32,21 @@ namespace AntiCrack_DotNet
             {
                 Console.Write(Text);
                 Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.Write(Result + "\n\n");
+                Console.Write($"{Result}\n\n");
                 Console.ForegroundColor = ConsoleColor.White;
             }
             else if (Result == "Skipped")
             {
                 Console.Write(Text);
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.Write($"[{Result}]" + "\n\n");
+                Console.Write($"[{Result}]\n\n");
                 Console.ForegroundColor = ConsoleColor.White;
             }
             else
             {
                 Console.Write(Text);
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-                Console.Write(Result + "\n\n");
+                Console.Write($"{Result}\n\n");
                 Console.ForegroundColor = ConsoleColor.White;
             }
         }
@@ -58,6 +58,8 @@ namespace AntiCrack_DotNet
             DisplayCheckResult("Debugger.IsAttached: ", AntiDebug.DebuggerIsAttached());
             DisplayCheckResult("Hide Threads From Debugger..... ", AntiDebug.HideThreadsAntiDebug());
             DisplayCheckResult("IsDebuggerPresent: ", AntiDebug.IsDebuggerPresentCheck());
+            DisplayCheckResult("NtSetDebugFilterState Check: ", AntiDebug.NtSetDebugFilterStateAntiDebug());
+            DisplayCheckResult("Page Guard Breakpoints Detection Check: ", AntiDebug.PageGuardAntiDebug());
             DisplayCheckResult("NtQueryInformationProcess ProcessDebugFlags: ", AntiDebug.NtQueryInformationProcessCheck_ProcessDebugFlags());
             DisplayCheckResult("NtQueryInformationProcess ProcessDebugPort: ", AntiDebug.NtQueryInformationProcessCheck_ProcessDebugPort());
             DisplayCheckResult("NtQueryInformationProcess ProcessDebugObjectHandle: ", AntiDebug.NtQueryInformationProcessCheck_ProcessDebugObjectHandle());
@@ -93,6 +95,7 @@ namespace AntiCrack_DotNet
             DisplayCheckResult("Checking For Known Bad Process Names: ", AntiVirtualization.BadVMProcessNames());
             DisplayCheckResult("Checking For Ports (useful to detect VMs which have no ports connected): ", AntiVirtualization.PortConnectionAntiVM());
             Console.Write("Trying To Crash Sandboxie if Present......\n\n");
+            DisplayCheckResult("Checking for devices created by VMs or Sandboxes: ", AntiVirtualization.CheckDevices());
             AntiVirtualization.CrashingSandboxie();
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n\n");
         }
@@ -100,9 +103,10 @@ namespace AntiCrack_DotNet
         private static void ExecuteAntiDllInjectionTricks()
         {
             Console.WriteLine("----------------------------------Executing Anti Dll Injection Tricks---------------------------------------------------");
-            DisplayCheckResult("Patching LoadLibraryA To Prevent Dll Injection..... ", AntiDllInjection.PatchLoadLibraryA());
-            DisplayCheckResult("Patching LoadLibraryW To Prevent Dll Injection..... ", AntiDllInjection.PatchLoadLibraryW());
+            DisplayCheckResult("Patching and Changing LoadLibraryA Page Protection To Prevent Dll Injection..... ", AntiDllInjection.PatchLoadLibraryA());
+            DisplayCheckResult("Patching and Changing LoadLibraryW Page Protection Prevent Dll Injection..... ", AntiDllInjection.PatchLoadLibraryW());
             DisplayCheckResult("Taking Advantage of Binary Image Signature Mitigation Policy to Prevent Non-Microsoft Binaries From Being Injected..... ", AntiDllInjection.BinaryImageSignatureMitigationAntiDllInjection());
+            DisplayCheckResult("Checking if any injected libraries are present (simple dlls path whitelist check): ", AntiDllInjection.IsInjectedLibrary());
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n\n");
         }
 
@@ -112,19 +116,21 @@ namespace AntiCrack_DotNet
             DisplayCheckResult("Detecting if Unsigned Drivers are Allowed to Load: ", OtherChecks.IsUnsignedDriversAllowed());
             DisplayCheckResult("Detecting if Test-Signed Drivers are Allowed to Load: ", OtherChecks.IsTestSignedDriversAllowed());
             DisplayCheckResult("Detecting if Kernel Debugging are Enabled on the System: ", OtherChecks.IsKernelDebuggingEnabled());
+            DisplayCheckResult("Detecting if Secure Boot are Enabled on the System: ", OtherChecks.IsSecureBootEnabled());
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n\n");
         }
 
         private static void ExecuteHooksDetectionTricks()
         {
             Console.WriteLine("----------------------------------Executing Hooks Detection Tricks------------------------------------------------------");
-            DisplayCheckResult("Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64): ", HooksDetection.DetectBadInstructionsOnCommonAntiDebuggingFunctions());
+            DisplayCheckResult("Detecting Hooks on Common WinAPI Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64): ", HooksDetection.DetectHooksOnCommonWinAPIFunctions(null, null));
             Console.WriteLine("------------------------------------------------------------------------------------------------------------------------\n\n");
         }
 
         static void Main(string[] args)
         {
             Console.Title = "AntiCrack DotNet";
+            Console.ForegroundColor = ConsoleColor.White;
             for (;;)
             {
                 ExecuteAntiDebuggingTricks();

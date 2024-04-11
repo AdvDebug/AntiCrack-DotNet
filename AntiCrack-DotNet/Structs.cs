@@ -78,5 +78,28 @@ namespace AntiCrack_DotNet
             public short MaximumLength;
             public string Buffer;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SYSTEM_SECUREBOOT_INFORMATION
+        {
+            public bool SecureBootEnabled;
+            public bool SecureBootCapable;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SYSTEM_INFO
+        {
+            public ushort ProcessorArchitecture;
+            ushort Reserved;
+            public uint PageSize;
+            public IntPtr MinimumApplicationAddress;
+            public IntPtr MaximumApplicationAddress;
+            public IntPtr ActiveProcessorMask;
+            public uint AumberOfProcessors;
+            public uint ProcessorType;
+            public uint AllocationGranularity;
+            public ushort ProcessorLevel;
+            public ushort ProcessorRevision;
+        }
     }
 }

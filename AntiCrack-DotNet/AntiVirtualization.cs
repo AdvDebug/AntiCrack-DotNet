@@ -8,22 +8,30 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+using System.Windows.Forms;
+using Microsoft.Win32.SafeHandles;
 
 namespace AntiCrack_DotNet
 {
     class AntiVirtualization
     {
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lib);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetProcAddress(IntPtr ModuleHandle, string Function);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool WriteProcessMemory(IntPtr ProcHandle, IntPtr BaseAddress, byte[] Buffer, uint size, int NumOfBytes);
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool WriteProcessMemory(SafeHandle hProcess, IntPtr BaseAddress, byte[] Buffer, uint size, int NumOfBytes);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool IsProcessCritical(IntPtr Handle, ref bool BoolToCheck);
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern bool IsProcessCritical(SafeHandle hProcess, ref bool BoolToCheck);
+
+        [DllImport("ucrtbase.dll", SetLastError = true)]
+        private static extern IntPtr fopen(string filename, string mode);
+
+        [DllImport("ucrtbase.dll", SetLastError = true)]
+        private static extern int fclose(IntPtr filestream);
 
         public static bool IsSandboxiePresent()
         {
@@ -124,7 +132,7 @@ namespace AntiCrack_DotNet
             }
             return false;
         }
-        
+
         public static bool CheckForBlacklistedNames()
         {
             string[] BadNames = { "Johnson", "Miller", "malware", "maltest", "CurrentUser", "Sandbox", "virus", "John Doe", "test user", "sand box", "WDAGUtilityAccount" };
@@ -151,7 +159,6 @@ namespace AntiCrack_DotNet
                     {
                         foreach (string BadFileName in BadFileNames)
                         {
-
                             if (File.Exists(System32File) && Path.GetFileName(System32File).ToLower() == BadFileName.ToLower())
                             {
                                 return true;
@@ -195,7 +202,7 @@ namespace AntiCrack_DotNet
                     }
                 }
             }
-            catch{}
+            catch { }
             return false;
         }
 
@@ -213,7 +220,7 @@ namespace AntiCrack_DotNet
                 byte[] UnHookedCode = { 0xB8, 0x26, 0x00, 0x00, 0x00 };
                 IntPtr NtdllModule = GetModuleHandle("ntdll.dll");
                 IntPtr NtOpenProcess = GetProcAddress(NtdllModule, "NtOpenProcess");
-                WriteProcessMemory(Process.GetCurrentProcess().Handle, NtOpenProcess, UnHookedCode, 5, 0);
+                WriteProcessMemory(Process.GetCurrentProcess().SafeHandle, NtOpenProcess, UnHookedCode, 5, 0);
                 try
                 {
                     Process[] GetProcesses = Process.GetProcesses();
@@ -222,7 +229,7 @@ namespace AntiCrack_DotNet
                         bool DoingSomethingWithHandle = false;
                         try
                         {
-                            IsProcessCritical(ProcessesHandle.Handle, ref DoingSomethingWithHandle);
+                            IsProcessCritical(ProcessesHandle.SafeHandle, ref DoingSomethingWithHandle);
                         }
                         catch
                         {
@@ -235,6 +242,28 @@ namespace AntiCrack_DotNet
 
                 }
             }
+        }
+
+        public static bool CheckDevices()
+        {
+            string[] Devices = { "\\\\.\\pipe\\cuckoo", "\\\\.\\HGFS", "\\\\.\\vmci", "\\\\.\\VBoxMiniRdrDN", "\\\\.\\VBoxGuest", "\\\\.\\pipe\\VBoxMiniRdDN", "\\\\.\\VBoxTrayIPC", "\\\\.\\pipe\\VBoxTrayIPC" };
+            foreach (string Device in Devices)
+            {
+                try
+                {
+                    IntPtr File = fopen(Device, "r");
+                    if (File != IntPtr.Zero)
+                    {
+                        fclose(File);
+                        return true;
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+            }
+            return false;
         }
     }
 }

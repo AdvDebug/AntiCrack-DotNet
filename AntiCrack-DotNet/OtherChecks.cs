@@ -15,6 +15,9 @@ namespace AntiCrack_DotNet
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_KERNEL_DEBUGGER_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_SECUREBOOT_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
+
         private static uint SystemCodeIntegrityInformation = 0x67;
 
         public static bool IsUnsignedDriversAllowed()
@@ -62,6 +65,23 @@ namespace AntiCrack_DotNet
                 {
                     return true;
                 }
+            }
+            return false;
+        }
+
+        public static bool IsSecureBootEnabled()
+        {
+            uint SystemSecureBootInformation = 0x91;
+            Structs.SYSTEM_SECUREBOOT_INFORMATION SecureBoot = new Structs.SYSTEM_SECUREBOOT_INFORMATION();
+            SecureBoot.SecureBootCapable = false;
+            SecureBoot.SecureBootEnabled = false;
+            uint ReturnLength = 0;
+            if (NtQuerySystemInformation(SystemSecureBootInformation, ref SecureBoot, (uint)Marshal.SizeOf(SecureBoot), out ReturnLength) >= 0)
+            {
+                if (!SecureBoot.SecureBootCapable)
+                    return false;
+                if (!SecureBoot.SecureBootEnabled)
+                    return true;
             }
             return false;
         }
