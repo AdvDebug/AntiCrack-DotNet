@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using static System.Net.WebRequestMethods;
 using System.Windows.Forms;
 using System.ServiceProcess;
 using System.Runtime.CompilerServices;
@@ -91,7 +90,7 @@ namespace AntiCrack_DotNet
         private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize,uint dwFreeType);
+        private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
 
         public static bool NtCloseAntiDebug_InvalidHandle()
         {
@@ -345,7 +344,7 @@ namespace AntiCrack_DotNet
                     }
                 }
             }
-            catch{};
+            catch { }
             return false;
         }
 
@@ -371,7 +370,7 @@ namespace AntiCrack_DotNet
             {
                 memset(AllocatedSpace, 1, 0xC3);
                 uint OldProtect = 0;
-                if(VirtualProtect(AllocatedSpace, SysInfo.PageSize, PAGE_EXECUTE_READWRITE | PAGE_GUARD, out OldProtect))
+                if (VirtualProtect(AllocatedSpace, SysInfo.PageSize, PAGE_EXECUTE_READWRITE | PAGE_GUARD, out OldProtect))
                 {
                     try
                     {

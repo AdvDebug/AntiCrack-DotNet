@@ -95,7 +95,7 @@ namespace AntiCrack_DotNet
             public IntPtr MinimumApplicationAddress;
             public IntPtr MaximumApplicationAddress;
             public IntPtr ActiveProcessorMask;
-            public uint AumberOfProcessors;
+            public uint NumberOfProcessors;
             public uint ProcessorType;
             public uint AllocationGranularity;
             public ushort ProcessorLevel;

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace AntiCrack_DotNet
 {
@@ -41,7 +38,7 @@ namespace AntiCrack_DotNet
             Structs.SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new Structs.SYSTEM_CODEINTEGRITY_INFORMATION();
             CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(Structs.SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
-            if(NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
+            if (NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
             {
                 uint CODEINTEGRITY_OPTION_TESTSIGN = 0x02;
                 if ((CodeIntegrityInfo.CodeIntegrityOptions & CODEINTEGRITY_OPTION_TESTSIGN) == CODEINTEGRITY_OPTION_TESTSIGN)
@@ -82,6 +79,51 @@ namespace AntiCrack_DotNet
                     return false;
                 if (!SecureBoot.SecureBootEnabled)
                     return true;
+            }
+            return false;
+        }
+        public static bool IsVirtualizationBasedSecurityEnabled()
+        {
+            try
+            {
+                using (var searcher = new System.Management.ManagementObjectSearcher(@"root\cimv2\Security\MicrosoftVolumeEncryption", "SELECT * FROM Win32_EncryptableVolume WHERE DriveLetter = C:"))
+                {
+                    foreach (var obj in searcher.Get())
+                    {
+                        var protectionStatus = (uint)obj["ProtectionStatus"];
+                        if (protectionStatus == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            return false;
+        }
+
+        public static bool IsMemoryIntegrityEnabled()
+        {
+            try
+            {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity"))
+                {
+                    if (key != null)
+                    {
+                        object value = key.GetValue("Enabled");
+                        if (value != null && (int)value == 1)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                return false;
             }
             return false;
         }

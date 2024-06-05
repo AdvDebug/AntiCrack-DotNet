@@ -213,7 +213,7 @@ namespace AntiCrack_DotNet
             return false;
         }
 
-        public static void CrashingSandboxie() //Only use if running as x86
+        public static void CrashingSandboxie()
         {
             if (!Environment.Is64BitProcess)
             {
@@ -263,6 +263,39 @@ namespace AntiCrack_DotNet
                     continue;
                 }
             }
+            return false;
+        }
+        public static bool CheckForParallels()
+        {
+            string[] BadDriversList = { "prl_sf", "prl_tg", "prl_eth" };
+            foreach (string Drivers in Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.System), "*"))
+            {
+                foreach (string BadDrivers in BadDriversList)
+                {
+                    if (Drivers.Contains(BadDrivers))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool CheckForQemu()
+        {
+            string[] BadDriversList = { "qemu-ga", "qemuwmi" };
+            foreach (string Drivers in Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.System), "*"))
+            {
+                foreach (string BadDrivers in BadDriversList)
+                {
+                    if (Drivers.Contains(BadDrivers))
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
     }
