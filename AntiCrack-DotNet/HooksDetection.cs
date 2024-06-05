@@ -37,7 +37,7 @@ namespace AntiCrack_DotNet
             LdrGetDllHandleEx(0, null, null, UnicodeString, ref hModule);
             return hModule;
         }
-        
+
         private static IntPtr LowLevelGetProcAddress(IntPtr hModule, string Function)
         {
             if (IntPtr.Size == 4)
@@ -192,6 +192,30 @@ namespace AntiCrack_DotNet
                 catch
                 {
                 }
+            }
+            return false;
+        }
+
+        // Additional detection method
+        public static bool DetectInlineHooks(string moduleName, string[] functions)
+        {
+            if (moduleName != null && functions != null)
+            {
+                try
+                {
+                    foreach (string function in functions)
+                    {
+                        IntPtr moduleHandle = LowLevelGetModuleHandle(moduleName);
+                        IntPtr functionHandle = LowLevelGetProcAddress(moduleHandle, function);
+                        byte[] functionBytes = new byte[1];
+                        Marshal.Copy(functionHandle, functionBytes, 0, 1);
+                        if (functionBytes[0] == 0xCC || functionBytes[0] == 0xE9)
+                        {
+                            return true;
+                        }
+                    }
+                }
+                catch { }
             }
             return false;
         }

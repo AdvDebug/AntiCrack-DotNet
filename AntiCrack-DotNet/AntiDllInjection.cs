@@ -66,10 +66,20 @@ namespace AntiCrack_DotNet
                 if (!FileName.StartsWith(Windows) && !FileName.StartsWith(ProgramData))
                     IsMalicious = true;
 
-                if (FileName.StartsWith(Environment.CurrentDirectory.ToLower())) //for compatibility
+                if (FileName.StartsWith(Environment.CurrentDirectory.ToLower()))
                     IsMalicious = false;
             }
             return IsMalicious;
+        }
+        public static string SetDllLoadPolicy()
+        {
+            Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy = new Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY
+            {
+                MicrosoftSignedOnly = 1
+            };
+            if (SetProcessMitigationPolicy(0x10, ref policy, Marshal.SizeOf(policy)))
+                return "Success";
+            return "Failed";
         }
     }
 }
