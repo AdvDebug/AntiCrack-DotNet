@@ -70,7 +70,7 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 * Checking For Ports on the system (useful if the VM or the sandbox have no ports connected)
 
-* Making Sandboxie Crash Your Application (this exploit no longer works, it's patched by sandboxie, that's what i get for making things public :), now it works only with older versions of sandboxie)
+* Making Sandboxie Crash Your Application (no longer works)
 
 * Checking for devices created by VMs or Sandboxes
 
