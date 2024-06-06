@@ -151,7 +151,7 @@ namespace AntiCrack_DotNet
         private static void ExecuteHooksDetectionTricks()
         {
             ConsoleConfig.DisplayHeader("Executing Hooks Detection Tricks");
-            ConsoleConfig.DisplayResult("Detecting Hooks on Common WinAPI Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64): ", HooksDetection.DetectHooksOnCommonWinAPIFunctions(null, null), "Detects hooks on common WinAPI functions.");
+            ConsoleConfig.DisplayResult("Detecting Hooks on Common WinAPI Functions by checking for Bad Instructions on Functions Addresses: ", HooksDetection.DetectHooksOnCommonWinAPIFunctions(null, null), "Detects hooks on common WinAPI functions.");
             ConsoleConfig.DisplayResult("Detecting Hooks on CLR Functions (x86 only): ", HooksDetection.DetectCLRHooks(), "Detects hooks on CLR Functions.");
             ConsoleConfig.DisplayFooter();
         }
