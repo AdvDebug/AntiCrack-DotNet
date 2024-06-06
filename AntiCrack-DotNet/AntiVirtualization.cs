@@ -282,6 +282,22 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        public static bool TriageCheck()
+        {
+            using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_DiskDrive"))
+            {
+                foreach (var item in searcher.Get())
+                {
+                    string model = item["Model"].ToString();
+                    if (model.Contains("DADY HARDDISK") || model.Contains("QEMU HARDDISK"))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public static bool CheckForQemu()
         {
             string[] BadDriversList = { "qemu-ga", "qemuwmi" };
