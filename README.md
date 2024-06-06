@@ -1,7 +1,7 @@
 # AntiCrack DotNet
 A C# Project which Contains some Anti-Cracking, anti memory injection techniques, etc. (also feel free to open an issue for adding additional anti-debugging features, etc)
 
-![AntiCrack](https://github.com/AdvDebug/AntiCrack-DotNet/assets/90452585/6395e69e-dbb0-402e-8d01-c34b97598b0f)
+![Damn](https://github.com/AdvDebug/AntiCrack-DotNet/assets/90452585/db8a12aa-b3c6-47db-bb72-6db6894567c7)
 
 ## Anti Debugging
 * GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
