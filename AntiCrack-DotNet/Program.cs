@@ -106,6 +106,7 @@ namespace AntiCrack_DotNet
             ConsoleConfig.DisplayHeader("Executing Anti Virtualization Tricks");
             ConsoleConfig.DisplayResult("Checking For Triage: ", AntiVirtualization.TriageCheck(), "Checks if Triage is present through disk.");
             ConsoleConfig.DisplayResult("Checking For Qemu: ", AntiVirtualization.CheckForQemu(), "Checks if running under Qemu.");
+            ConsoleConfig.DisplayResult("Checking For Parallels: ", AntiVirtualization.CheckForParallels(), "Checks if running under Parallels.");
             ConsoleConfig.DisplayResult("Checking For Sandboxie Module in Current Process: ", AntiVirtualization.IsSandboxiePresent(), "Checks if Sandboxie is present.");
             ConsoleConfig.DisplayResult("Checking For Comodo Sandbox Module in Current Process: ", AntiVirtualization.IsComodoSandboxPresent(), "Checks if Comodo Sandbox is present.");
             ConsoleConfig.DisplayResult("Checking For Cuckoo Sandbox Module in Current Process: ", AntiVirtualization.IsCuckooSandboxPresent(), "Checks if Cuckoo Sandbox is present.");
@@ -130,7 +131,7 @@ namespace AntiCrack_DotNet
             ConsoleConfig.DisplayHeader("Executing Anti DLL Injection Tricks");
             ConsoleConfig.DisplayResult("Patching LoadLibraryA To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryA(), "Patches LoadLibraryA to prevent DLL injection.");
             ConsoleConfig.DisplayResult("Patching LoadLibraryW To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryW(), "Patches LoadLibraryW to prevent DLL injection.");
-            ConsoleConfig.DisplayResult("Taking Advantage of Binary Image Signature Mitigation Policy to Prevent Non-Microsoft Binaries From Being Injected..... ", AntiDllInjection.BinaryImageSignatureMitigationAntiDllInjection(), "Enforces binary image signature mitigation policy.");
+            ConsoleConfig.DisplayResult("Taking Advantage of Binary Image Signature Mitigation Policy to Prevent Non-Microsoft Binaries From Being Injected..... ", AntiDllInjection.SetDllLoadPolicy(), "Enforces binary image signature mitigation policy.");
             ConsoleConfig.DisplayResult("Checking if any injected libraries are present (simple DLL path whitelist check): ", AntiDllInjection.IsInjectedLibrary(), "Checks for injected libraries.");
             ConsoleConfig.DisplayFooter();
         }
