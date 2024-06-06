@@ -104,6 +104,7 @@ namespace AntiCrack_DotNet
         private static void ExecuteAntiVirtualizationTricks()
         {
             ConsoleConfig.DisplayHeader("Executing Anti Virtualization Tricks");
+            ConsoleConfig.DisplayResult("Checking For Triage: ", AntiVirtualization.TriageCheck(), "Checks if Triage is present through disk.");
             ConsoleConfig.DisplayResult("Checking For Sandboxie Module in Current Process: ", AntiVirtualization.IsSandboxiePresent(), "Checks if Sandboxie is present.");
             ConsoleConfig.DisplayResult("Checking For Comodo Sandbox Module in Current Process: ", AntiVirtualization.IsComodoSandboxPresent(), "Checks if Comodo Sandbox is present.");
             ConsoleConfig.DisplayResult("Checking For Cuckoo Sandbox Module in Current Process: ", AntiVirtualization.IsCuckooSandboxPresent(), "Checks if Cuckoo Sandbox is present.");
