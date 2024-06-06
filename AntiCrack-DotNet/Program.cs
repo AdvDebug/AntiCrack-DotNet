@@ -105,6 +105,7 @@ namespace AntiCrack_DotNet
         {
             ConsoleConfig.DisplayHeader("Executing Anti Virtualization Tricks");
             ConsoleConfig.DisplayResult("Checking For Triage: ", AntiVirtualization.TriageCheck(), "Checks if Triage is present through disk.");
+            ConsoleConfig.DisplayResult("Checking For Qemu: ", AntiVirtualization.CheckForQemu(), "Checks if running under Qemu.");
             ConsoleConfig.DisplayResult("Checking For Sandboxie Module in Current Process: ", AntiVirtualization.IsSandboxiePresent(), "Checks if Sandboxie is present.");
             ConsoleConfig.DisplayResult("Checking For Comodo Sandbox Module in Current Process: ", AntiVirtualization.IsComodoSandboxPresent(), "Checks if Comodo Sandbox is present.");
             ConsoleConfig.DisplayResult("Checking For Cuckoo Sandbox Module in Current Process: ", AntiVirtualization.IsCuckooSandboxPresent(), "Checks if Cuckoo Sandbox is present.");
@@ -127,8 +128,8 @@ namespace AntiCrack_DotNet
         private static void ExecuteAntiDllInjectionTricks()
         {
             ConsoleConfig.DisplayHeader("Executing Anti DLL Injection Tricks");
-            ConsoleConfig.DisplayResult("Patching and Changing LoadLibraryA Page Protection To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryA(), "Patches LoadLibraryA to prevent DLL injection.");
-            ConsoleConfig.DisplayResult("Patching and Changing LoadLibraryW Page Protection To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryW(), "Patches LoadLibraryW to prevent DLL injection.");
+            ConsoleConfig.DisplayResult("Patching LoadLibraryA To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryA(), "Patches LoadLibraryA to prevent DLL injection.");
+            ConsoleConfig.DisplayResult("Patching LoadLibraryW To Prevent DLL Injection..... ", AntiDllInjection.PatchLoadLibraryW(), "Patches LoadLibraryW to prevent DLL injection.");
             ConsoleConfig.DisplayResult("Taking Advantage of Binary Image Signature Mitigation Policy to Prevent Non-Microsoft Binaries From Being Injected..... ", AntiDllInjection.BinaryImageSignatureMitigationAntiDllInjection(), "Enforces binary image signature mitigation policy.");
             ConsoleConfig.DisplayResult("Checking if any injected libraries are present (simple DLL path whitelist check): ", AntiDllInjection.IsInjectedLibrary(), "Checks for injected libraries.");
             ConsoleConfig.DisplayFooter();
@@ -141,6 +142,9 @@ namespace AntiCrack_DotNet
             ConsoleConfig.DisplayResult("Detecting if Test-Signed Drivers are Allowed to Load: ", OtherChecks.IsTestSignedDriversAllowed(), "Checks if test-signed drivers are allowed.");
             ConsoleConfig.DisplayResult("Detecting if Kernel Debugging is Enabled on the System: ", OtherChecks.IsKernelDebuggingEnabled(), "Checks if kernel debugging is enabled.");
             ConsoleConfig.DisplayResult("Detecting if Secure Boot is Enabled on the System: ", OtherChecks.IsSecureBootEnabled(), "Checks if secure boot is enabled.");
+            ConsoleConfig.DisplayResult("Detecting if Virtualization-Based Security is Enabled: ", OtherChecks.IsVirtualizationBasedSecurityEnabled(), "Checks if VBS is enabled.");
+            ConsoleConfig.DisplayResult("Detecting if Memory Integrity Protection is Enabled: ", OtherChecks.IsMemoryIntegrityEnabled(), "Checks if Memory Integrity is enabled.");
+            ConsoleConfig.DisplayResult("Detecting if the current assembly has been invoked by another one: ", OtherChecks.IsInovkedAssembly(), "Checks if assembly has been invoked.");
             ConsoleConfig.DisplayFooter();
         }
 
@@ -148,6 +152,7 @@ namespace AntiCrack_DotNet
         {
             ConsoleConfig.DisplayHeader("Executing Hooks Detection Tricks");
             ConsoleConfig.DisplayResult("Detecting Hooks on Common WinAPI Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64): ", HooksDetection.DetectHooksOnCommonWinAPIFunctions(null, null), "Detects hooks on common WinAPI functions.");
+            ConsoleConfig.DisplayResult("Detecting Hooks on CLR Functions (x86 only): ", HooksDetection.DetectCLRHooks(), "Detects hooks on CLR Functions.");
             ConsoleConfig.DisplayFooter();
         }
 

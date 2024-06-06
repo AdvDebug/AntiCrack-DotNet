@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Reflection;
+using System.IO;
+using System.Net.Sockets;
 
 namespace AntiCrack_DotNet
 {
@@ -51,6 +51,20 @@ namespace AntiCrack_DotNet
             return FunctionHandle;
         }
 
+        private static unsafe byte InternalReadByte(IntPtr ptr)
+        {
+            try
+            {
+                byte* ptr2 = (byte*)(void*)ptr;
+                return *ptr2;
+            }
+            catch
+            {
+
+            }
+            return 0;
+        }
+
         public static bool DetectHooksOnCommonWinAPIFunctions(string ModuleName, string[] Functions)
         {
             string[] Libraries = { "kernel32.dll", "kernelbase.dll", "ntdll.dll", "user32.dll", "win32u.dll" };
@@ -72,9 +86,8 @@ namespace AntiCrack_DotNet
                                     foreach (string WinAPIFunction in CommonKernelLibFunctions)
                                     {
                                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                                        byte[] FunctionBytes = new byte[1];
-                                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                                        if (FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                                        byte FunctionByte = InternalReadByte(Function);
+                                        if (FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
                                             return true;
                                         }
@@ -93,9 +106,8 @@ namespace AntiCrack_DotNet
                                     foreach (string WinAPIFunction in CommonKernelLibFunctions)
                                     {
                                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                                        byte[] FunctionBytes = new byte[1];
-                                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                                        if (FunctionBytes[0] == 255 || FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                                        byte FunctionByte = InternalReadByte(Function);
+                                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
                                             return true;
                                         }
@@ -114,9 +126,8 @@ namespace AntiCrack_DotNet
                                     foreach (string WinAPIFunction in CommonNtdllFunctions)
                                     {
                                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                                        byte[] FunctionBytes = new byte[1];
-                                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                                        if (FunctionBytes[0] == 255 || FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                                        byte FunctionByte = InternalReadByte(Function);
+                                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
                                             return true;
                                         }
@@ -135,9 +146,8 @@ namespace AntiCrack_DotNet
                                     foreach (string WinAPIFunction in CommonUser32Functions)
                                     {
                                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                                        byte[] FunctionBytes = new byte[1];
-                                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                                        if (FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                                        byte FunctionByte = InternalReadByte(Function);
+                                        if (FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
                                             return true;
                                         }
@@ -156,9 +166,8 @@ namespace AntiCrack_DotNet
                                     foreach (string WinAPIFunction in CommonWin32uFunctions)
                                     {
                                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                                        byte[] FunctionBytes = new byte[1];
-                                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                                        if (FunctionBytes[0] == 255 || FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                                        byte FunctionByte = InternalReadByte(Function);
+                                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
                                             return true;
                                         }
@@ -181,9 +190,8 @@ namespace AntiCrack_DotNet
                     {
                         IntPtr hModule = LowLevelGetModuleHandle(ModuleName);
                         IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                        byte[] FunctionBytes = new byte[1];
-                        Marshal.Copy(Function, FunctionBytes, 0, 1);
-                        if (FunctionBytes[0] == 255 || FunctionBytes[0] == 0x90 || FunctionBytes[0] == 0xE9)
+                        byte FunctionByte = InternalReadByte(Function);
+                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                         {
                             return true;
                         }
@@ -191,12 +199,12 @@ namespace AntiCrack_DotNet
                 }
                 catch
                 {
+
                 }
             }
             return false;
         }
 
-        // Additional detection method
         public static bool DetectInlineHooks(string moduleName, string[] functions)
         {
             if (moduleName != null && functions != null)
@@ -205,17 +213,92 @@ namespace AntiCrack_DotNet
                 {
                     foreach (string function in functions)
                     {
-                        IntPtr moduleHandle = LowLevelGetModuleHandle(moduleName);
-                        IntPtr functionHandle = LowLevelGetProcAddress(moduleHandle, function);
-                        byte[] functionBytes = new byte[1];
-                        Marshal.Copy(functionHandle, functionBytes, 0, 1);
-                        if (functionBytes[0] == 0xCC || functionBytes[0] == 0xE9)
+                        IntPtr hModule = LowLevelGetModuleHandle(moduleName);
+                        IntPtr Function = LowLevelGetProcAddress(hModule, function);
+                        byte FunctionByte = InternalReadByte(Function);
+                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                         {
                             return true;
                         }
                     }
                 }
                 catch { }
+            }
+            return false;
+        }
+
+        public static bool DetectCLRHooks()
+        {
+            if (IntPtr.Size == 4)
+            {
+                try
+                {
+                    MethodInfo[] ProcessMethods = typeof(Process).GetMethods();
+                    MethodInfo[] AssemblyMethods = typeof(Assembly).GetMethods();
+                    MethodInfo[] FileMethods = typeof(File).GetMethods();
+                    MethodInfo[] SocketMethods = typeof(Socket).GetMethods();
+                    MethodInfo[] MarshalMethods = typeof(Marshal).GetMethods();
+                    MethodInfo[] StringMethods = typeof(string).GetMethods();
+                    foreach (MethodInfo ProcessMethod in ProcessMethods)
+                    {
+                        byte FirstByte = InternalReadByte(ProcessMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            return true;
+                        }
+                    }
+
+                    foreach (MethodInfo AssemblyMethod in AssemblyMethods)
+                    {
+                        byte FirstByte = InternalReadByte(AssemblyMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                            return true;
+                    }
+
+                    foreach (MethodInfo FileMethod in FileMethods)
+                    {
+                        byte FirstByte = InternalReadByte(FileMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                            return true;
+                    }
+
+                    foreach (MethodInfo SocketMethod in SocketMethods)
+                    {
+                        byte FirstByte = InternalReadByte(SocketMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                            return true;
+                    }
+
+                    foreach (MethodInfo MarshalMethod in MarshalMethods)
+                    {
+                        byte FirstByte = InternalReadByte(MarshalMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                            return true;
+                    }
+
+                    foreach (MethodInfo StringMethod in StringMethods)
+                    {
+                        byte FirstByte = InternalReadByte(StringMethod.MethodHandle.GetFunctionPointer());
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                            return true;
+                    }
+
+                    Type[] AllTypes = Assembly.GetExecutingAssembly().GetTypes();
+                    foreach (Type type in AllTypes)
+                    {
+                        MethodInfo[] AllMethods = type.GetMethods();
+                        foreach (MethodInfo Method in AllMethods)
+                        {
+                            byte FirstByte = InternalReadByte(Method.MethodHandle.GetFunctionPointer());
+                            if (FirstByte == 0xE9 || FirstByte == 255)
+                                return true;
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
             }
             return false;
         }

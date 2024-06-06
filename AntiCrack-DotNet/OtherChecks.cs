@@ -1,5 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Reflection;
+using System.Windows.Forms;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Security;
 using Microsoft.Win32;
 
 namespace AntiCrack_DotNet
@@ -15,10 +25,14 @@ namespace AntiCrack_DotNet
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_SECUREBOOT_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
-        private static uint SystemCodeIntegrityInformation = 0x67;
+        [DllImport("QCall", CharSet = CharSet.Unicode)]
+        [SecurityCritical]
+        [SuppressUnmanagedCodeSecurity]
+        private static extern void GetExecutingAssembly(uint stackMark, IntPtr retAssembly);
 
         public static bool IsUnsignedDriversAllowed()
         {
+            uint SystemCodeIntegrityInformation = 0x67;
             Structs.SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new Structs.SYSTEM_CODEINTEGRITY_INFORMATION();
             CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(Structs.SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
@@ -35,6 +49,7 @@ namespace AntiCrack_DotNet
 
         public static bool IsTestSignedDriversAllowed()
         {
+            uint SystemCodeIntegrityInformation = 0x67;
             Structs.SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new Structs.SYSTEM_CODEINTEGRITY_INFORMATION();
             CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(Structs.SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
@@ -77,11 +92,12 @@ namespace AntiCrack_DotNet
             {
                 if (!SecureBoot.SecureBootCapable)
                     return false;
-                if (!SecureBoot.SecureBootEnabled)
+                if (SecureBoot.SecureBootEnabled)
                     return true;
             }
             return false;
         }
+
         public static bool IsVirtualizationBasedSecurityEnabled()
         {
             try
@@ -125,6 +141,15 @@ namespace AntiCrack_DotNet
             {
                 return false;
             }
+            return false;
+        }
+
+        public static bool IsInovkedAssembly()
+        {
+            MethodInfo Method = typeof(Assembly).GetMethod("GetExecutingAssembly");
+            Assembly GetCallingAssem = (Assembly)Method.Invoke(null, null);
+            if (GetCallingAssem.Location != Application.ExecutablePath)
+                return true;
             return false;
         }
     }
