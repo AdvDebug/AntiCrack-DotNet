@@ -37,6 +37,13 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 * Patching DbgUiRemoteBreakin and DbgBreakPoint (Anti-Debugger Attaching)
 
 ## Anti Virtualization
+
+* Detecting Triage
+
+* Detecting Qemu.
+
+* Detecting Parallels.
+
 * Detecting Sandboxie
 
 * Detecting Comodo Container
@@ -85,8 +92,16 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 * Detecting if Secure Boot are Enabled on the System
 
+* Detecting if Virtualization-Based Security is Enabled.
+
+* Detecting if Memory Integrity Protection is Enabled.
+
+* Detecting if the current assembly has been invoked.
+
 ## Hooks Detection
-* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses (Most Effective on x64) and it detects user-mode anti anti-debuggers like scyllahide, and it can also detect some sandboxes which uses hooking to monitor application behaviour/activity (like <a href="https://github.com/sandboxie-plus/Sandboxie">Sandboxie/Sandboxie Plus</a>, <a href="https://www.hybrid-analysis.com">Hybrid Analysis</a>, <a href="https://cuckoosandbox.org/">Cuckoo Sandbox</a>, and a lot of other online malware analysis websites/applications).
+* Detecting Most Anti Anti-Debugging Hooking Methods on Common Anti-Debugging Functions by checking for Bad Instructions on Functions Addresses and it detects user-mode anti anti-debuggers like scyllahide, and it can also detect some sandboxes which uses hooking to monitor application behaviour/activity (like <a href="https://github.com/sandboxie-plus/Sandboxie">Sandboxie/Sandboxie Plus</a>, <a href="https://www.hybrid-analysis.com">Hybrid Analysis</a>, <a href="https://cuckoosandbox.org/">Cuckoo Sandbox</a>, and a lot of other online malware analysis websites/applications).
+
+* Detecting CLR Functions Hooking.
 
 # Notice
 This Project are created for educational purposes only, also this project are licensed under MIT License.
