@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
 using System.Diagnostics;
-using System.IO;
-using System.Windows.Forms;
-using static AntiCrack_DotNet.Structs;
+using System.Runtime.InteropServices;
 
 namespace AntiCrack_DotNet
 {
-    class AntiDllInjection
+    internal sealed class AntiDllInjection
     {
+
+        #region WinApi
+
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetModuleHandle(string lib);
 
@@ -24,6 +21,13 @@ namespace AntiCrack_DotNet
         [DllImport("kernelbase.dll", SetLastError = true)]
         public static extern bool SetProcessMitigationPolicy(int policy, ref Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY lpBuffer, int size);
 
+        #endregion
+
+
+        /// <summary>
+        /// Patches the LoadLibraryA function to prevent DLL injection.
+        /// </summary>
+        /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
         public static string PatchLoadLibraryA()
         {
             IntPtr KernelModule = GetModuleHandle("kernelbase.dll");
@@ -35,6 +39,10 @@ namespace AntiCrack_DotNet
             return "Failed";
         }
 
+        /// <summary>
+        /// Patches the LoadLibraryW function to prevent DLL injection.
+        /// </summary>
+        /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
         public static string PatchLoadLibraryW()
         {
             IntPtr KernelModule = GetModuleHandle("kernelbase.dll");
@@ -46,6 +54,10 @@ namespace AntiCrack_DotNet
             return "Failed";
         }
 
+        /// <summary>
+        /// Enables the binary image signature mitigation policy to only allow Microsoft-signed binaries.
+        /// </summary>
+        /// <returns>Returns "Success" if the policy was set successfully, otherwise "Failed".</returns>
         public static string BinaryImageSignatureMitigationAntiDllInjection()
         {
             Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY OnlyMicrosoftBinaries = new Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY();
@@ -55,6 +67,10 @@ namespace AntiCrack_DotNet
             return "Failed";
         }
 
+        /// <summary>
+        /// Checks if there are any injected libraries in the current process.
+        /// </summary>
+        /// <returns>Returns true if an injected library is detected, otherwise false.</returns>
         public static bool IsInjectedLibrary()
         {
             bool IsMalicious = false;
@@ -71,6 +87,11 @@ namespace AntiCrack_DotNet
             }
             return IsMalicious;
         }
+
+        /// <summary>
+        /// Sets the DLL load policy to only allow Microsoft-signed DLLs to be loaded.
+        /// </summary>
+        /// <returns>Returns "Success" if the policy was set successfully, otherwise "Failed".</returns>
         public static string SetDllLoadPolicy()
         {
             Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY policy = new Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY

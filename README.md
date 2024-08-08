@@ -38,6 +38,8 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 
 ## Anti Virtualization
 
+* Detecting Any.run
+
 * Detecting Triage
 
 * Detecting Qemu.

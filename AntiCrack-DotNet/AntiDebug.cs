@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
-using System.Windows.Forms;
-using System.ServiceProcess;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace AntiCrack_DotNet
 {
-    class AntiDebug
+    internal sealed class AntiDebug
     {
+        #region WinApi
+
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool SetHandleInformation(IntPtr hObject, uint dwMask, uint dwFlags);
 
@@ -92,6 +89,12 @@ namespace AntiCrack_DotNet
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
 
+        #endregion
+
+        /// <summary>
+        /// Attempts to close an invalid handle to detect debugger presence.
+        /// </summary>
+        /// <returns>Returns true if an exception is caught, indicating no debugger, otherwise false.</returns>
         public static bool NtCloseAntiDebug_InvalidHandle()
         {
             try
@@ -105,6 +108,10 @@ namespace AntiCrack_DotNet
             }
         }
 
+        /// <summary>
+        /// Attempts to close a protected handle to detect debugger presence.
+        /// </summary>
+        /// <returns>Returns true if an exception is caught, indicating no debugger, otherwise false.</returns>
         public static bool NtCloseAntiDebug_ProtectedHandle()
         {
             IntPtr hMutex = CreateMutexA(IntPtr.Zero, false, new Random().Next(0, 9999999).ToString());
@@ -125,11 +132,19 @@ namespace AntiCrack_DotNet
             return Result;
         }
 
+        /// <summary>
+        /// Checks if a debugger is attached to the process.
+        /// </summary>
+        /// <returns>Returns true if a debugger is attached, otherwise false.</returns>
         public static bool DebuggerIsAttached()
         {
             return Debugger.IsAttached;
         }
 
+        /// <summary>
+        /// Checks if a debugger is present using the IsDebuggerPresent API.
+        /// </summary>
+        /// <returns>Returns true if a debugger is present, otherwise false.</returns>
         public static bool IsDebuggerPresentCheck()
         {
             if (IsDebuggerPresent())
@@ -137,6 +152,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if the process has debug flags set using NtQueryInformationProcess.
+        /// </summary>
+        /// <returns>Returns true if debug flags are set, otherwise false.</returns>
         public static bool NtQueryInformationProcessCheck_ProcessDebugFlags()
         {
             uint ProcessDebugFlags = 0;
@@ -146,6 +165,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if the process has a debug port using NtQueryInformationProcess.
+        /// </summary>
+        /// <returns>Returns true if a debug port is detected, otherwise false.</returns>
         public static bool NtQueryInformationProcessCheck_ProcessDebugPort()
         {
             uint DebuggerPresent = 0;
@@ -158,6 +181,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if the process has a debug object handle using NtQueryInformationProcess.
+        /// </summary>
+        /// <returns>Returns true if a debug object handle is detected, otherwise false.</returns>
         public static bool NtQueryInformationProcessCheck_ProcessDebugObjectHandle()
         {
             IntPtr hDebugObject = IntPtr.Zero;
@@ -170,6 +197,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Patches the DbgUiRemoteBreakin and DbgBreakPoint functions to prevent debugger attachment.
+        /// </summary>
+        /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
         public static string AntiDebugAttach()
         {
             IntPtr NtdllModule = GetModuleHandle("ntdll.dll");
@@ -184,6 +215,10 @@ namespace AntiCrack_DotNet
             return "Failed";
         }
 
+        /// <summary>
+        /// Checks for the presence of known debugger windows.
+        /// </summary>
+        /// <returns>Returns true if a known debugger window is detected, otherwise false.</returns>
         public static bool FindWindowAntiDebug()
         {
             Process[] GetProcesses = Process.GetProcesses();
@@ -202,6 +237,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if the foreground window belongs to a known debugger.
+        /// </summary>
+        /// <returns>Returns true if a known debugger window is detected, otherwise false.</returns>
         public static bool GetForegroundWindowAntiDebug()
         {
             string[] BadWindowNames = { "x32dbg", "x64dbg", "windbg", "ollydbg", "dnspy", "immunity debugger", "hyperdbg", "debug", "debugger", "cheat engine", "cheatengine", "ida" };
@@ -225,6 +264,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Hides threads from the debugger by setting the NtSetInformationThread.
+        /// </summary>
+        /// <returns>Returns "Success" if the threads were hidden successfully, otherwise "Failed".</returns>
         public static string HideThreadsAntiDebug()
         {
             try
@@ -252,12 +295,21 @@ namespace AntiCrack_DotNet
             }
         }
 
+        /// <summary>
+        /// Uses GetTickCount to detect debugger presence.
+        /// </summary>
+        /// <returns>Returns true if debugger presence is detected, otherwise false.</returns>
         public static bool GetTickCountAntiDebug()
         {
             uint Start = GetTickCount();
             Thread.Sleep(0x10);
             return (GetTickCount() - Start) > 0x10;
         }
+
+        /// <summary>
+        /// Uses OutputDebugString to detect debugger presence.
+        /// </summary>
+        /// <returns>Returns true if debugger presence is detected, otherwise false.</returns>
         public static bool OutputDebugStringAntiDebug()
         {
             Debugger.Log(0, null, "just testing some stuff...");
@@ -266,11 +318,18 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Exploits a format string vulnerability in OllyDbg.
+        /// </summary>
         public static void OllyDbgFormatStringExploit()
         {
             Debugger.Log(0, null, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s");
         }
 
+        /// <summary>
+        /// Triggers a debug break to detect debugger presence.
+        /// </summary>
+        /// <returns>Returns true if an exception is caught, indicating no debugger, otherwise false.</returns>
         public static bool DebugBreakAntiDebug()
         {
             try
@@ -286,6 +345,10 @@ namespace AntiCrack_DotNet
 
         private static long CONTEXT_DEBUG_REGISTERS = 0x00010000L | 0x00000010L;
 
+        /// <summary>
+        /// Detects hardware breakpoints by checking debug registers.
+        /// </summary>
+        /// <returns>Returns true if hardware breakpoints are detected, otherwise false.</returns>
         public static bool HardwareRegistersBreakpointsDetection()
         {
             Structs.CONTEXT Context = new Structs.CONTEXT();
@@ -302,6 +365,12 @@ namespace AntiCrack_DotNet
             NtClose(CurrentThread);
             return false;
         }
+
+        /// <summary>
+        /// Cleans the specified path by removing null characters.
+        /// </summary>
+        /// <param name="Path">The path to clean.</param>
+        /// <returns>The cleaned path.</returns>
         private static string CleanPath(string Path)
         {
             string CleanedPath = null;
@@ -315,6 +384,10 @@ namespace AntiCrack_DotNet
             return CleanedPath;
         }
 
+        /// <summary>
+        /// Checks if the parent process is a debugger by querying process information.
+        /// </summary>
+        /// <returns>Returns true if the parent process is a debugger, otherwise false.</returns>
         public static bool ParentProcessAntiDebug()
         {
             try
@@ -348,6 +421,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Uses NtSetDebugFilterState to prevent debugging.
+        /// </summary>
+        /// <returns>Returns true if the filter state was set successfully, otherwise false.</returns>
         public static bool NtSetDebugFilterStateAntiDebug()
         {
             if (NtSetDebugFilterState(0, 0, true) != 0)
@@ -356,6 +433,11 @@ namespace AntiCrack_DotNet
         }
 
         delegate int ExecutionDelegate();
+
+        /// <summary>
+        /// Uses page guard to detect debugger presence by executing a function pointer.
+        /// </summary>
+        /// <returns>Returns true if debugger presence is detected, otherwise false.</returns>
         public static bool PageGuardAntiDebug()
         {
             Structs.SYSTEM_INFO SysInfo = new Structs.SYSTEM_INFO();
@@ -389,4 +471,5 @@ namespace AntiCrack_DotNet
             return false;
         }
     }
+
 }

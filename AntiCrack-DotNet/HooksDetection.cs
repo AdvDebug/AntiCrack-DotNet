@@ -1,14 +1,17 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using System.Diagnostics;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 using System.Net.Sockets;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace AntiCrack_DotNet
 {
-    public class HooksDetection
+    public sealed class HooksDetection
     {
+
+        #region WinApi
+
         [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern void RtlInitUnicodeString(out Structs.UNICODE_STRING DestinationString, string SourceString);
 
@@ -27,6 +30,13 @@ namespace AntiCrack_DotNet
         [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Ansi)]
         private static extern uint LdrGetProcedureAddressForCaller(IntPtr Module, Structs.ANSI_STRING ProcedureName, ushort ProcedureNumber, out IntPtr FunctionHandle, ulong Flags, IntPtr CallBack);
 
+        #endregion
+
+        /// <summary>
+        /// Gets the handle of a specified module using low-level functions.
+        /// </summary>
+        /// <param name="Library">The name of the library to get the handle for.</param>
+        /// <returns>The handle to the module.</returns>
         private static IntPtr LowLevelGetModuleHandle(string Library)
         {
             if (IntPtr.Size == 4)
@@ -38,6 +48,12 @@ namespace AntiCrack_DotNet
             return hModule;
         }
 
+        /// <summary>
+        /// Gets the address of a specified function using low-level functions.
+        /// </summary>
+        /// <param name="hModule">The handle to the module.</param>
+        /// <param name="Function">The name of the function to get the address for.</param>
+        /// <returns>The address of the function.</returns>
         private static IntPtr LowLevelGetProcAddress(IntPtr hModule, string Function)
         {
             if (IntPtr.Size == 4)
@@ -51,6 +67,11 @@ namespace AntiCrack_DotNet
             return FunctionHandle;
         }
 
+        /// <summary>
+        /// Reads a byte from a specified memory address.
+        /// </summary>
+        /// <param name="ptr">The memory address to read from.</param>
+        /// <returns>The byte read from the memory address.</returns>
         private static unsafe byte InternalReadByte(IntPtr ptr)
         {
             try
@@ -65,6 +86,12 @@ namespace AntiCrack_DotNet
             return 0;
         }
 
+        /// <summary>
+        /// Detects hooks on common Windows API functions.
+        /// </summary>
+        /// <param name="ModuleName">The name of the module to check for hooks.</param>
+        /// <param name="Functions">The list of functions to check for hooks.</param>
+        /// <returns>Returns true if hooks are detected, otherwise false.</returns>
         public static bool DetectHooksOnCommonWinAPIFunctions(string ModuleName, string[] Functions)
         {
             string[] Libraries = { "kernel32.dll", "kernelbase.dll", "ntdll.dll", "user32.dll", "win32u.dll" };
@@ -205,6 +232,12 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Detects inline hooks on specified functions within a module.
+        /// </summary>
+        /// <param name="moduleName">The name of the module to check for hooks.</param>
+        /// <param name="functions">The list of functions to check for hooks.</param>
+        /// <returns>Returns true if hooks are detected, otherwise false.</returns>
         public static bool DetectInlineHooks(string moduleName, string[] functions)
         {
             if (moduleName != null && functions != null)
@@ -227,6 +260,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Detects hooks in common .NET methods.
+        /// </summary>
+        /// <returns>Returns true if hooks are detected, otherwise false.</returns>
         public static bool DetectCLRHooks()
         {
             if (IntPtr.Size == 4)
@@ -303,4 +340,5 @@ namespace AntiCrack_DotNet
             return false;
         }
     }
+
 }

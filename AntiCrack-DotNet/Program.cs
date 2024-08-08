@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Diagnostics;
 
 namespace AntiCrack_DotNet
 {
-    class Program
+    internal sealed class Program
     {
-        private class ConsoleConfig
+        private sealed class ConsoleConfig
         {
             public static void SetDefaultColors()
             {
@@ -104,6 +100,7 @@ namespace AntiCrack_DotNet
         private static void ExecuteAntiVirtualizationTricks()
         {
             ConsoleConfig.DisplayHeader("Executing Anti Virtualization Tricks");
+            ConsoleConfig.DisplayResult("Checking For Any.run: ", AntiVirtualization.AnyRunCheck(), "Checks if Any.run is present through crypto id.");
             ConsoleConfig.DisplayResult("Checking For Triage: ", AntiVirtualization.TriageCheck(), "Checks if Triage is present through disk.");
             ConsoleConfig.DisplayResult("Checking For Qemu: ", AntiVirtualization.CheckForQemu(), "Checks if running under Qemu.");
             ConsoleConfig.DisplayResult("Checking For Parallels: ", AntiVirtualization.CheckForParallels(), "Checks if running under Parallels.");
@@ -157,10 +154,11 @@ namespace AntiCrack_DotNet
             ConsoleConfig.DisplayFooter();
         }
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             ConsoleConfig.SetDefaultColors();
             ConsoleConfig.SetTitle("AntiCrack DotNet");
+
             while (true)
             {
                 ExecuteAntiDebuggingTricks();

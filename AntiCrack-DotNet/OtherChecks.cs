@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using System.Security;
 using System.Reflection;
 using System.Windows.Forms;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Security;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace AntiCrack_DotNet
 {
-    public class OtherChecks
+    public sealed class OtherChecks
     {
+        #region WinApi 
+
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_CODEINTEGRITY_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
@@ -30,6 +25,12 @@ namespace AntiCrack_DotNet
         [SuppressUnmanagedCodeSecurity]
         private static extern void GetExecutingAssembly(uint stackMark, IntPtr retAssembly);
 
+        #endregion
+
+        /// <summary>
+        /// Checks if unsigned drivers are allowed on the system.
+        /// </summary>
+        /// <returns>Returns true if unsigned drivers are allowed, otherwise false.</returns>
         public static bool IsUnsignedDriversAllowed()
         {
             uint SystemCodeIntegrityInformation = 0x67;
@@ -47,6 +48,10 @@ namespace AntiCrack_DotNet
             return true;
         }
 
+        /// <summary>
+        /// Checks if test-signed drivers are allowed on the system.
+        /// </summary>
+        /// <returns>Returns true if test-signed drivers are allowed, otherwise false.</returns>
         public static bool IsTestSignedDriversAllowed()
         {
             uint SystemCodeIntegrityInformation = 0x67;
@@ -64,6 +69,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if kernel debugging is enabled on the system.
+        /// </summary>
+        /// <returns>Returns true if kernel debugging is enabled, otherwise false.</returns>
         public static bool IsKernelDebuggingEnabled()
         {
             uint SystemKernelDebuggerInformation = 0x23;
@@ -81,6 +90,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if Secure Boot is enabled on the system.
+        /// </summary>
+        /// <returns>Returns true if Secure Boot is enabled, otherwise false.</returns>
         public static bool IsSecureBootEnabled()
         {
             uint SystemSecureBootInformation = 0x91;
@@ -98,6 +111,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if virtualization-based security is enabled on the system.
+        /// </summary>
+        /// <returns>Returns true if virtualization-based security is enabled, otherwise false.</returns>
         public static bool IsVirtualizationBasedSecurityEnabled()
         {
             try
@@ -121,6 +138,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if memory integrity (Hypervisor-enforced Code Integrity) is enabled on the system.
+        /// </summary>
+        /// <returns>Returns true if memory integrity is enabled, otherwise false.</returns>
         public static bool IsMemoryIntegrityEnabled()
         {
             try
@@ -144,6 +165,10 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        /// <summary>
+        /// Checks if the current assembly is invoked by another assembly.
+        /// </summary>
+        /// <returns>Returns true if the current assembly is invoked by another assembly, otherwise false.</returns>
         public static bool IsInovkedAssembly()
         {
             MethodInfo Method = typeof(Assembly).GetMethod("GetExecutingAssembly");
@@ -153,4 +178,5 @@ namespace AntiCrack_DotNet
             return false;
         }
     }
+
 }
