@@ -4,11 +4,13 @@ using System.Reflection;
 using System.Net.Sockets;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Net;
 
 namespace AntiCrack_DotNet
 {
     public sealed class HooksDetection
     {
+        public static object ProcessMethod { get; private set; }
 
         #region WinApi
 
@@ -89,10 +91,8 @@ namespace AntiCrack_DotNet
         /// <summary>
         /// Detects hooks on common Windows API functions.
         /// </summary>
-        /// <param name="ModuleName">The name of the module to check for hooks.</param>
-        /// <param name="Functions">The list of functions to check for hooks.</param>
         /// <returns>Returns true if hooks are detected, otherwise false.</returns>
-        public static bool DetectHooksOnCommonWinAPIFunctions(string ModuleName, string[] Functions)
+        public static bool DetectHooksOnCommonWinAPIFunctions()
         {
             string[] Libraries = { "kernel32.dll", "kernelbase.dll", "ntdll.dll", "user32.dll", "win32u.dll" };
             string[] CommonKernelLibFunctions = { "IsDebuggerPresent", "CheckRemoteDebuggerPresent", "GetThreadContext", "CloseHandle", "OutputDebugStringA", "GetTickCount", "SetHandleInformation" };
@@ -209,26 +209,6 @@ namespace AntiCrack_DotNet
                     }
                 }
             }
-            if (ModuleName != null && Functions != null)
-            {
-                try
-                {
-                    foreach (string WinAPIFunction in Functions)
-                    {
-                        IntPtr hModule = LowLevelGetModuleHandle(ModuleName);
-                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
-                        byte FunctionByte = InternalReadByte(Function);
-                        if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
             return false;
         }
 
@@ -260,15 +240,29 @@ namespace AntiCrack_DotNet
             return false;
         }
 
+        public static bool IsModule(IntPtr Address)
+        {
+            foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
+            {
+                IntPtr Base = module.BaseAddress;
+                IntPtr End = IntPtr.Add(Base, module.ModuleMemorySize);
+                if (Address.ToInt64() >= Base.ToInt64() && Address.ToInt64() < End.ToInt64())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Detects hooks in common .NET methods.
         /// </summary>
         /// <returns>Returns true if hooks are detected, otherwise false.</returns>
         public static bool DetectCLRHooks()
         {
-            if (IntPtr.Size == 4)
+            try
             {
-                try
+                if (IntPtr.Size == 4)
                 {
                     MethodInfo[] ProcessMethods = typeof(Process).GetMethods();
                     MethodInfo[] AssemblyMethods = typeof(Assembly).GetMethods();
@@ -278,7 +272,8 @@ namespace AntiCrack_DotNet
                     MethodInfo[] StringMethods = typeof(string).GetMethods();
                     foreach (MethodInfo ProcessMethod in ProcessMethods)
                     {
-                        byte FirstByte = InternalReadByte(ProcessMethod.MethodHandle.GetFunctionPointer());
+                        IntPtr FP = ProcessMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
                             return true;
@@ -332,10 +327,100 @@ namespace AntiCrack_DotNet
                         }
                     }
                 }
-                catch
+                else if(IntPtr.Size == 8)
                 {
+                    MethodInfo[] ProcessMethods = typeof(Process).GetMethods();
+                    MethodInfo[] AssemblyMethods = typeof(Assembly).GetMethods();
+                    MethodInfo[] FileMethods = typeof(File).GetMethods();
+                    MethodInfo[] SocketMethods = typeof(Socket).GetMethods();
+                    MethodInfo[] MarshalMethods = typeof(Marshal).GetMethods();
+                    MethodInfo[] StringMethods = typeof(string).GetMethods();
+                    foreach (MethodInfo ProcessMethod in ProcessMethods)
+                    {
+                        IntPtr FP = ProcessMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if(IsModule(FP))
+                                return true;
+                        }
+                    }
 
+                    foreach (MethodInfo AssemblyMethod in AssemblyMethods)
+                    {
+                        IntPtr FP = AssemblyMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if (IsModule(FP))
+                                return true;
+                        }
+                    }
+
+                    foreach (MethodInfo FileMethod in FileMethods)
+                    {
+                        IntPtr FP = FileMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if (IsModule(FP))
+                                return true;
+                        }
+                    }
+
+                    foreach (MethodInfo SocketMethod in SocketMethods)
+                    {
+                        IntPtr FP = SocketMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if (IsModule(FP))
+                                return true;
+                        }
+                    }
+
+                    foreach (MethodInfo MarshalMethod in MarshalMethods)
+                    {
+                        IntPtr FP = MarshalMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if (IsModule(FP))
+                                return true;
+                        }
+                    }
+
+                    foreach (MethodInfo StringMethod in StringMethods)
+                    {
+                        IntPtr FP = StringMethod.MethodHandle.GetFunctionPointer();
+                        byte FirstByte = InternalReadByte(FP);
+                        if (FirstByte == 0xE9 || FirstByte == 255)
+                        {
+                            if (IsModule(FP))
+                                return true;
+                        }
+                    }
+
+                    Type[] AllTypes = Assembly.GetExecutingAssembly().GetTypes();
+                    foreach (Type type in AllTypes)
+                    {
+                        MethodInfo[] AllMethods = type.GetMethods();
+                        foreach (MethodInfo Method in AllMethods)
+                        {
+                            IntPtr FP = Method.MethodHandle.GetFunctionPointer();
+                            byte FirstByte = InternalReadByte(FP);
+                            if (FirstByte == 0xE9 || FirstByte == 255)
+                            {
+                                if (IsModule(FP))
+                                    return true;
+                            }
+                        }
+                    }
                 }
+            }
+            catch
+            {
+                
             }
             return false;
         }
