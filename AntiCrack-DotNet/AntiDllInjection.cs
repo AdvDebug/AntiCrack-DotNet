@@ -23,50 +23,6 @@ namespace AntiCrack_DotNet
 
         #endregion
 
-
-        /// <summary>
-        /// Patches the LoadLibraryA function to prevent DLL injection.
-        /// </summary>
-        /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
-        public static string PatchLoadLibraryA()
-        {
-            IntPtr KernelModule = GetModuleHandle("kernelbase.dll");
-            IntPtr LoadLibraryA = GetProcAddress(KernelModule, "LoadLibraryA");
-            byte[] HookedCode = { 0xC2, 0x04, 0x00 };
-            bool Status = WriteProcessMemory(Process.GetCurrentProcess().SafeHandle, LoadLibraryA, HookedCode, 3, 0);
-            if (Status)
-                return "Success";
-            return "Failed";
-        }
-
-        /// <summary>
-        /// Patches the LoadLibraryW function to prevent DLL injection.
-        /// </summary>
-        /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
-        public static string PatchLoadLibraryW()
-        {
-            IntPtr KernelModule = GetModuleHandle("kernelbase.dll");
-            IntPtr LoadLibraryW = GetProcAddress(KernelModule, "LoadLibraryW");
-            byte[] HookedCode = { 0xC2, 0x04, 0x00 };
-            bool Status = WriteProcessMemory(Process.GetCurrentProcess().SafeHandle, LoadLibraryW, HookedCode, 3, 0);
-            if (Status)
-                return "Success";
-            return "Failed";
-        }
-
-        /// <summary>
-        /// Enables the binary image signature mitigation policy to only allow Microsoft-signed binaries.
-        /// </summary>
-        /// <returns>Returns "Success" if the policy was set successfully, otherwise "Failed".</returns>
-        public static string BinaryImageSignatureMitigationAntiDllInjection()
-        {
-            Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY OnlyMicrosoftBinaries = new Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY();
-            OnlyMicrosoftBinaries.MicrosoftSignedOnly = 1;
-            if (SetProcessMitigationPolicy(8, ref OnlyMicrosoftBinaries, Marshal.SizeOf(typeof(Structs.PROCESS_MITIGATION_BINARY_SIGNATURE_POLICY))))
-                return "Success";
-            return "Failed";
-        }
-
         /// <summary>
         /// Checks if there are any injected libraries in the current process.
         /// </summary>
@@ -98,7 +54,7 @@ namespace AntiCrack_DotNet
             {
                 MicrosoftSignedOnly = 1
             };
-            if (SetProcessMitigationPolicy(0x10, ref policy, Marshal.SizeOf(policy)))
+            if (SetProcessMitigationPolicy(8, ref policy, Marshal.SizeOf(policy)))
                 return "Success";
             return "Failed";
         }

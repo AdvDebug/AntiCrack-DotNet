@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace AntiCrack_DotNet
 {
-    internal sealed class Structs
+    public sealed class Structs
     {
         [StructLayout(LayoutKind.Sequential)]
         public struct CONTEXT
@@ -15,12 +15,18 @@ namespace AntiCrack_DotNet
             public uint P5Home;
             public uint P6Home;
             public long ContextFlags;
+            public IntPtr MxCsr;
+            public IntPtr SegCs;
+            public IntPtr SegDs;
+            public IntPtr SegEs;
+            public IntPtr SegFs;
+            public IntPtr SegGs;
+            public IntPtr SegSs;
+            public IntPtr EFlags;
             public uint Dr0;
             public uint Dr1;
             public uint Dr2;
             public uint Dr3;
-            public uint Dr4;
-            public uint Dr5;
             public uint Dr6;
             public uint Dr7;
         }
@@ -97,6 +103,23 @@ namespace AntiCrack_DotNet
             public uint AllocationGranularity;
             public ushort ProcessorLevel;
             public ushort ProcessorRevision;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct OSVERSIONINFOEX
+        {
+            public int dwOSVersionInfoSize;
+            public int dwMajorVersion;
+            public int dwMinorVersion;
+            public int dwBuildNumber;
+            public int dwPlatformId;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string szCSDVersion;
+            public ushort wServicePackMajor;
+            public ushort wServicePackMinor;
+            public ushort wSuiteMask;
+            public byte wProductType;
+            public byte wReserved;
         }
     }
 }

@@ -14,11 +14,23 @@ namespace AntiCrack_DotNet
 
         #region WinApi
 
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lib);
+        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern void RtlInitUnicodeString(out Structs.UNICODE_STRING DestinationString, string SourceString);
+
+        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Ansi)]
+        private static extern void RtlUnicodeStringToAnsiString(out Structs.ANSI_STRING DestinationString, Structs.UNICODE_STRING UnicodeString, bool AllocateDestinationString);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern uint LdrGetDllHandleEx(ulong Flags, [MarshalAs(UnmanagedType.LPWStr)] string DllPath, [MarshalAs(UnmanagedType.LPWStr)] string DllCharacteristics, Structs.UNICODE_STRING LibraryName, ref IntPtr DllHandle);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern IntPtr GetProcAddress(IntPtr ModuleHandle, string Function);
+        private static extern IntPtr GetModuleHandleA(string Library);
+
+        [DllImport("kernelbase.dll", SetLastError = true)]
+        private static extern IntPtr GetProcAddress(IntPtr hModule, string Function);
+
+        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Ansi)]
+        private static extern uint LdrGetProcedureAddressForCaller(IntPtr Module, Structs.ANSI_STRING ProcedureName, ushort ProcedureNumber, out IntPtr FunctionHandle, ulong Flags, IntPtr CallBack);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool WriteProcessMemory(SafeHandle hProcess, IntPtr BaseAddress, byte[] Buffer, uint size, int NumOfBytes);
@@ -40,7 +52,7 @@ namespace AntiCrack_DotNet
         /// <returns>True if Sandboxie is detected, otherwise false.</returns>
         public static bool IsSandboxiePresent()
         {
-            if (GetModuleHandle("SbieDll.dll").ToInt32() != 0)
+            if (Utils.LowLevelGetModuleHandle("SbieDll.dll").ToInt32() != 0)
                 return true;
             return false;
         }
@@ -51,7 +63,7 @@ namespace AntiCrack_DotNet
         /// <returns>True if Comodo Sandbox is detected, otherwise false.</returns>
         public static bool IsComodoSandboxPresent()
         {
-            if (GetModuleHandle("cmdvrt32.dll").ToInt32() != 0 || GetModuleHandle("cmdvrt64.dll").ToInt32() != 0)
+            if (Utils.LowLevelGetModuleHandle("cmdvrt32.dll").ToInt32() != 0 || Utils.LowLevelGetModuleHandle("cmdvrt64.dll").ToInt32() != 0)
                 return true;
             return false;
         }
@@ -62,7 +74,7 @@ namespace AntiCrack_DotNet
         /// <returns>True if Qihoo 360 Sandbox is detected, otherwise false.</returns>
         public static bool IsQihoo360SandboxPresent()
         {
-            if (GetModuleHandle("SxIn.dll").ToInt32() != 0)
+            if (Utils.LowLevelGetModuleHandle("SxIn.dll").ToInt32() != 0)
                 return true;
             return false;
         }
@@ -73,7 +85,7 @@ namespace AntiCrack_DotNet
         /// <returns>True if Cuckoo Sandbox is detected, otherwise false.</returns>
         public static bool IsCuckooSandboxPresent()
         {
-            if (GetModuleHandle("cuckoomon.dll").ToInt32() != 0)
+            if (Utils.LowLevelGetModuleHandle("cuckoomon.dll").ToInt32() != 0)
                 return true;
             return false;
         }
@@ -100,8 +112,8 @@ namespace AntiCrack_DotNet
         /// <returns>True if Wine is detected, otherwise false.</returns>
         public static bool IsWinePresent()
         {
-            IntPtr ModuleHandle = GetModuleHandle("kernel32.dll");
-            if (GetProcAddress(ModuleHandle, "wine_get_unix_file_name").ToInt32() != 0)
+            IntPtr ModuleHandle = Utils.LowLevelGetModuleHandle("kernel32.dll");
+            if (Utils.LowLevelGetProcAddress(ModuleHandle, "wine_get_unix_file_name").ToInt32() != 0)
                 return true;
             return false;
         }
@@ -120,7 +132,7 @@ namespace AntiCrack_DotNet
                     {
                         string ManufacturerString = Item["Manufacturer"].ToString().ToLower();
                         string ModelName = Item["Model"].ToString();
-                        if ((ManufacturerString == "microsoft corporation" && ModelName.ToUpperInvariant().Contains("VIRTUAL") || ManufacturerString.Contains("vmware")))
+                        if ((ManufacturerString == "microsoft corporation" && Utils.Contains(ModelName.ToUpperInvariant(), "VIRTUAL") || Utils.Contains(ManufacturerString, "vmware")))
                         {
                             return true;
                         }
@@ -141,7 +153,7 @@ namespace AntiCrack_DotNet
             {
                 foreach (string BadDrivers in BadDriversList)
                 {
-                    if (Drivers.Contains(BadDrivers))
+                    if (Utils.Contains(Drivers, BadDrivers))
                     {
                         return true;
                     }
@@ -163,7 +175,7 @@ namespace AntiCrack_DotNet
                 string[] Services = { "vmbus", "VMBusHID", "hyperkbd" };
                 foreach (string ServicesToCheck in Services)
                 {
-                    if (CompareServicesNames.ServiceName.Contains(ServicesToCheck))
+                    if (Utils.Contains(CompareServicesNames.ServiceName, ServicesToCheck))
                         return true;
                 }
             }
@@ -267,40 +279,6 @@ namespace AntiCrack_DotNet
         }
 
         /// <summary>
-        /// Attempts to crash Sandboxie if detected.
-        /// </summary>
-        public static void CrashingSandboxie()
-        {
-            if (!Environment.Is64BitProcess)
-            {
-                byte[] UnHookedCode = { 0xB8, 0x26, 0x00, 0x00, 0x00 };
-                IntPtr NtdllModule = GetModuleHandle("ntdll.dll");
-                IntPtr NtOpenProcess = GetProcAddress(NtdllModule, "NtOpenProcess");
-                WriteProcessMemory(Process.GetCurrentProcess().SafeHandle, NtOpenProcess, UnHookedCode, 5, 0);
-                try
-                {
-                    Process[] GetProcesses = Process.GetProcesses();
-                    foreach (Process ProcessesHandle in GetProcesses)
-                    {
-                        bool DoingSomethingWithHandle = false;
-                        try
-                        {
-                            IsProcessCritical(ProcessesHandle.SafeHandle, ref DoingSomethingWithHandle);
-                        }
-                        catch
-                        {
-                            continue;
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
-        }
-
-        /// <summary>
         /// Checks for VM-related device names.
         /// </summary>
         /// <returns>True if VM-related device names are detected, otherwise false.</returns>
@@ -337,7 +315,7 @@ namespace AntiCrack_DotNet
             {
                 foreach (string BadDrivers in BadDriversList)
                 {
-                    if (Drivers.Contains(BadDrivers))
+                    if (Utils.Contains(Drivers, BadDrivers))
                     {
                         return true;
                     }
@@ -358,7 +336,7 @@ namespace AntiCrack_DotNet
                 foreach (var item in searcher.Get())
                 {
                     string model = item["Model"].ToString();
-                    if (model.Contains("DADY HARDDISK") || model.Contains("QEMU HARDDISK"))
+                    if (Utils.Contains(model, "DADY HARDDISK") || Utils.Contains(model, "QEMU HARDDISK"))
                     {
                         return true;
                     }
@@ -410,7 +388,7 @@ namespace AntiCrack_DotNet
             {
                 foreach (string BadDrivers in BadDriversList)
                 {
-                    if (Drivers.Contains(BadDrivers))
+                    if (Utils.Contains(Drivers, BadDrivers))
                     {
                         return true;
                     }

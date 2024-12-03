@@ -4,6 +4,9 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Net;
+using System.Security.Cryptography;
 
 namespace AntiCrack_DotNet
 {
@@ -62,8 +65,8 @@ namespace AntiCrack_DotNet
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern int QueryFullProcessImageNameA(SafeHandle hProcess, uint Flags, byte[] lpExeName, Int32[] lpdwSize);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr GetForegroundWindow();
+        [DllImport("win32u.dll", SetLastError = true)]
+        private static extern IntPtr NtUserGetForegroundWindow();
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern int GetWindowTextLengthA(IntPtr HWND);
@@ -93,13 +96,19 @@ namespace AntiCrack_DotNet
 
         /// <summary>
         /// Attempts to close an invalid handle to detect debugger presence.
+        /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
         /// <returns>Returns true if an exception is caught, indicating no debugger, otherwise false.</returns>
-        public static bool NtCloseAntiDebug_InvalidHandle()
+        public static bool NtCloseAntiDebug_InvalidHandle(bool Syscall)
         {
             try
             {
-                NtClose((IntPtr)0x1231222L);
+                int RandomInt = new Random().Next(int.MinValue, int.MaxValue);
+                IntPtr RandomIntPtr = new IntPtr(RandomInt);
+                if (Syscall)
+                    Syscalls.SyscallNtClose(RandomIntPtr);
+                else
+                    NtClose(RandomIntPtr);
                 return false;
             }
             catch
@@ -110,17 +119,22 @@ namespace AntiCrack_DotNet
 
         /// <summary>
         /// Attempts to close a protected handle to detect debugger presence.
+        /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
         /// <returns>Returns true if an exception is caught, indicating no debugger, otherwise false.</returns>
-        public static bool NtCloseAntiDebug_ProtectedHandle()
+        public static bool NtCloseAntiDebug_ProtectedHandle(bool Syscall)
         {
-            IntPtr hMutex = CreateMutexA(IntPtr.Zero, false, new Random().Next(0, 9999999).ToString());
+            string RandomMutexName = new Random().Next(int.MinValue, int.MaxValue).ToString();
+            IntPtr hMutex = CreateMutexA(IntPtr.Zero, false, RandomMutexName);
             uint HANDLE_FLAG_PROTECT_FROM_CLOSE = 0x00000002;
             SetHandleInformation(hMutex, HANDLE_FLAG_PROTECT_FROM_CLOSE, HANDLE_FLAG_PROTECT_FROM_CLOSE);
             bool Result = false;
             try
             {
-                NtClose(hMutex);
+                if (Syscall)
+                    Syscalls.SyscallNtClose(hMutex);
+                else
+                    NtClose(hMutex);
                 Result = false;
             }
             catch
@@ -153,13 +167,20 @@ namespace AntiCrack_DotNet
         }
 
         /// <summary>
-        /// Checks if the process has debug flags set using NtQueryInformationProcess.
+        /// Checks if the process has debug flags set using NtQueryInformationProcess
+        /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
         /// <returns>Returns true if debug flags are set, otherwise false.</returns>
-        public static bool NtQueryInformationProcessCheck_ProcessDebugFlags()
+        public static bool NtQueryInformationProcessCheck_ProcessDebugFlags(bool Syscall)
         {
             uint ProcessDebugFlags = 0;
-            NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1F, out ProcessDebugFlags, sizeof(uint), 0);
+            uint Class = 0x1F;
+            uint Size = sizeof(uint);
+            uint Result = 0;
+            if (Syscall)
+                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, Class, out ProcessDebugFlags, Size, out Result);
+            else
+                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1F, out ProcessDebugFlags, sizeof(uint), 0);
             if (ProcessDebugFlags == 0)
                 return true;
             return false;
@@ -167,15 +188,20 @@ namespace AntiCrack_DotNet
 
         /// <summary>
         /// Checks if the process has a debug port using NtQueryInformationProcess.
+        /// <param name="Syscall">specifies if we should use syscalls to call the WinAPI functions.</param>.
         /// </summary>
         /// <returns>Returns true if a debug port is detected, otherwise false.</returns>
-        public static bool NtQueryInformationProcessCheck_ProcessDebugPort()
+        public static bool NtQueryInformationProcessCheck_ProcessDebugPort(bool Syscall)
         {
             uint DebuggerPresent = 0;
             uint Size = sizeof(uint);
             if (Environment.Is64BitProcess)
                 Size = sizeof(uint) * 2;
-            NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 7, out DebuggerPresent, Size, 0);
+            uint Result = 0;
+            if(Syscall)
+                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 7, out DebuggerPresent, Size, out Result);
+            else
+                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 7, out DebuggerPresent, Size, 0);
             if (DebuggerPresent != 0)
                 return true;
             return false;
@@ -183,15 +209,20 @@ namespace AntiCrack_DotNet
 
         /// <summary>
         /// Checks if the process has a debug object handle using NtQueryInformationProcess.
+        /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
         /// <returns>Returns true if a debug object handle is detected, otherwise false.</returns>
-        public static bool NtQueryInformationProcessCheck_ProcessDebugObjectHandle()
+        public static bool NtQueryInformationProcessCheck_ProcessDebugObjectHandle(bool Syscall)
         {
             IntPtr hDebugObject = IntPtr.Zero;
             uint Size = sizeof(uint);
             if (Environment.Is64BitProcess)
                 Size = sizeof(uint) * 2;
-            NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1E, out hDebugObject, Size, 0);
+
+            if (Syscall)
+                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1E, out hDebugObject, Size, 0);
+            else
+                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1E, out hDebugObject, Size, 0);
             if (hDebugObject != IntPtr.Zero)
                 return true;
             return false;
@@ -221,17 +252,30 @@ namespace AntiCrack_DotNet
         /// <returns>Returns true if a known debugger window is detected, otherwise false.</returns>
         public static bool FindWindowAntiDebug()
         {
+            string[] BadWindowNames = { "x32dbg", "x64dbg", "windbg", "ollydbg", "dnspy", "immunity debugger", "hyperdbg", "cheat engine", "cheatengine", "ida" };
             Process[] GetProcesses = Process.GetProcesses();
             foreach (Process GetWindow in GetProcesses)
             {
-                string[] BadWindowNames = { "x32dbg", "x64dbg", "windbg", "ollydbg", "dnspy", "immunity debugger", "hyperdbg", "cheat engine", "cheatengine", "ida" };
-                foreach (string BadWindows in BadWindowNames)
+                try
                 {
-                    if (GetWindow.MainWindowTitle.ToLower().Contains(BadWindows))
+                    if (GetWindow.MainWindowHandle != IntPtr.Zero)
                     {
-                        GetWindow.Close();
-                        return true;
+                        string title = GetWindow.MainWindowTitle;
+                        if (string.IsNullOrEmpty(title)) continue;
+
+                        foreach (string BadWindows in BadWindowNames)
+                        {
+                            if (title.IndexOf(BadWindows, StringComparison.OrdinalIgnoreCase) >= 0)
+                            {
+                                GetWindow.Close();
+                                return true;
+                            }
+                        }
                     }
+                }
+                catch
+                {
+                    continue;
                 }
             }
             return false;
@@ -241,10 +285,10 @@ namespace AntiCrack_DotNet
         /// Checks if the foreground window belongs to a known debugger.
         /// </summary>
         /// <returns>Returns true if a known debugger window is detected, otherwise false.</returns>
-        public static bool GetForegroundWindowAntiDebug()
+        public static bool NtUserGetForegroundWindowAntiDebug()
         {
             string[] BadWindowNames = { "x32dbg", "x64dbg", "windbg", "ollydbg", "dnspy", "immunity debugger", "hyperdbg", "debug", "debugger", "cheat engine", "cheatengine", "ida" };
-            IntPtr HWND = GetForegroundWindow();
+            IntPtr HWND = NtUserGetForegroundWindow();
             if (HWND != IntPtr.Zero)
             {
                 int WindowLength = GetWindowTextLengthA(HWND);
@@ -254,7 +298,7 @@ namespace AntiCrack_DotNet
                     GetWindowTextA(HWND, WindowName, WindowLength + 1);
                     foreach (string BadWindows in BadWindowNames)
                     {
-                        if (WindowName.ToString().ToLower().Contains(BadWindows))
+                        if (Utils.Contains(WindowName.ToString().ToLower(), BadWindows))
                         {
                             return true;
                         }
@@ -353,16 +397,21 @@ namespace AntiCrack_DotNet
         {
             Structs.CONTEXT Context = new Structs.CONTEXT();
             Context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-            IntPtr CurrentThread = GetCurrentThread();
-            if (GetThreadContext(CurrentThread, ref Context))
+            foreach (ProcessThread Threads in Process.GetCurrentProcess().Threads)
             {
-                if ((Context.Dr1 != 0x00 || Context.Dr2 != 0x00 || Context.Dr3 != 0x00 || Context.Dr4 != 0x00 || Context.Dr5 != 0x00 || Context.Dr6 != 0x00 || Context.Dr7 != 0x00))
+                uint THREAD_GET_CONTEXT = 0x0008;
+                uint THREAD_QUERY_INFORMATION = 0x0040;
+                IntPtr hThread = OpenThread(THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION, false, Threads.Id);
+                if (GetThreadContext(hThread, ref Context))
                 {
-                    NtClose(CurrentThread);
-                    return true;
+                    if ((Context.Dr1 != 0x00 || Context.Dr2 != 0x00 || Context.Dr3 != 0x00 || Context.Dr6 != 0x00 || Context.Dr7 != 0x00))
+                    {
+                        NtClose(hThread);
+                        return true;
+                    }
                 }
+                NtClose(hThread);
             }
-            NtClose(CurrentThread);
             return false;
         }
 
@@ -386,15 +435,17 @@ namespace AntiCrack_DotNet
 
         /// <summary>
         /// Checks if the parent process is a debugger by querying process information.
+        /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
         /// <returns>Returns true if the parent process is a debugger, otherwise false.</returns>
-        public static bool ParentProcessAntiDebug()
+        public static bool ParentProcessAntiDebug(bool Syscall)
         {
             try
             {
                 Structs.PROCESS_BASIC_INFORMATION PBI = new Structs.PROCESS_BASIC_INFORMATION();
                 uint ProcessBasicInformation = 0;
-                if (NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0) == 0)
+                uint Result = Syscall ? Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0) : NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0);
+                if (Result == 0)
                 {
                     int ParentPID = PBI.InheritedFromUniqueProcessId.ToInt32();
                     if (ParentPID != 0)
@@ -432,7 +483,8 @@ namespace AntiCrack_DotNet
             return true;
         }
 
-        delegate int ExecutionDelegate();
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate int ExecutionDelegate();
 
         /// <summary>
         /// Uses page guard to detect debugger presence by executing a function pointer.
@@ -471,5 +523,4 @@ namespace AntiCrack_DotNet
             return false;
         }
     }
-
 }

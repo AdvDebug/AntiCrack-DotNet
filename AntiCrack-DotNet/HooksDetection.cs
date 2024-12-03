@@ -12,63 +12,6 @@ namespace AntiCrack_DotNet
     {
         public static object ProcessMethod { get; private set; }
 
-        #region WinApi
-
-        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern void RtlInitUnicodeString(out Structs.UNICODE_STRING DestinationString, string SourceString);
-
-        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-        private static extern void RtlUnicodeStringToAnsiString(out Structs.ANSI_STRING DestinationString, Structs.UNICODE_STRING UnicodeString, bool AllocateDestinationString);
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint LdrGetDllHandleEx(ulong Flags, [MarshalAs(UnmanagedType.LPWStr)] string DllPath, [MarshalAs(UnmanagedType.LPWStr)] string DllCharacteristics, Structs.UNICODE_STRING LibraryName, ref IntPtr DllHandle);
-
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern IntPtr GetModuleHandleA(string Library);
-
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern IntPtr GetProcAddress(IntPtr hModule, string Function);
-
-        [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Ansi)]
-        private static extern uint LdrGetProcedureAddressForCaller(IntPtr Module, Structs.ANSI_STRING ProcedureName, ushort ProcedureNumber, out IntPtr FunctionHandle, ulong Flags, IntPtr CallBack);
-
-        #endregion
-
-        /// <summary>
-        /// Gets the handle of a specified module using low-level functions.
-        /// </summary>
-        /// <param name="Library">The name of the library to get the handle for.</param>
-        /// <returns>The handle to the module.</returns>
-        private static IntPtr LowLevelGetModuleHandle(string Library)
-        {
-            if (IntPtr.Size == 4)
-                return GetModuleHandleA(Library);
-            IntPtr hModule = IntPtr.Zero;
-            Structs.UNICODE_STRING UnicodeString = new Structs.UNICODE_STRING();
-            RtlInitUnicodeString(out UnicodeString, Library);
-            LdrGetDllHandleEx(0, null, null, UnicodeString, ref hModule);
-            return hModule;
-        }
-
-        /// <summary>
-        /// Gets the address of a specified function using low-level functions.
-        /// </summary>
-        /// <param name="hModule">The handle to the module.</param>
-        /// <param name="Function">The name of the function to get the address for.</param>
-        /// <returns>The address of the function.</returns>
-        private static IntPtr LowLevelGetProcAddress(IntPtr hModule, string Function)
-        {
-            if (IntPtr.Size == 4)
-                return GetProcAddress(hModule, Function);
-            IntPtr FunctionHandle = IntPtr.Zero;
-            Structs.UNICODE_STRING UnicodeString = new Structs.UNICODE_STRING();
-            Structs.ANSI_STRING AnsiString = new Structs.ANSI_STRING();
-            RtlInitUnicodeString(out UnicodeString, Function);
-            RtlUnicodeStringToAnsiString(out AnsiString, UnicodeString, true);
-            LdrGetProcedureAddressForCaller(hModule, AnsiString, 0, out FunctionHandle, 0, IntPtr.Zero);
-            return FunctionHandle;
-        }
-
         /// <summary>
         /// Reads a byte from a specified memory address.
         /// </summary>
@@ -101,7 +44,7 @@ namespace AntiCrack_DotNet
             string[] CommonWin32uFunctions = { "NtUserBlockInput", "NtUserFindWindowEx", "NtUserQueryWindow", "NtUserGetForegroundWindow" };
             foreach (string Library in Libraries)
             {
-                IntPtr hModule = LowLevelGetModuleHandle(Library);
+                IntPtr hModule = Utils.LowLevelGetModuleHandle(Library);
                 if (hModule != IntPtr.Zero)
                 {
                     switch (Library)
@@ -112,7 +55,7 @@ namespace AntiCrack_DotNet
                                 {
                                     foreach (string WinAPIFunction in CommonKernelLibFunctions)
                                     {
-                                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
+                                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, WinAPIFunction);
                                         byte FunctionByte = InternalReadByte(Function);
                                         if (FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
@@ -132,7 +75,7 @@ namespace AntiCrack_DotNet
                                 {
                                     foreach (string WinAPIFunction in CommonKernelLibFunctions)
                                     {
-                                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
+                                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, WinAPIFunction);
                                         byte FunctionByte = InternalReadByte(Function);
                                         if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
@@ -152,7 +95,7 @@ namespace AntiCrack_DotNet
                                 {
                                     foreach (string WinAPIFunction in CommonNtdllFunctions)
                                     {
-                                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
+                                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, WinAPIFunction);
                                         byte FunctionByte = InternalReadByte(Function);
                                         if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
@@ -172,7 +115,7 @@ namespace AntiCrack_DotNet
                                 {
                                     foreach (string WinAPIFunction in CommonUser32Functions)
                                     {
-                                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
+                                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, WinAPIFunction);
                                         byte FunctionByte = InternalReadByte(Function);
                                         if (FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
@@ -192,7 +135,7 @@ namespace AntiCrack_DotNet
                                 {
                                     foreach (string WinAPIFunction in CommonWin32uFunctions)
                                     {
-                                        IntPtr Function = LowLevelGetProcAddress(hModule, WinAPIFunction);
+                                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, WinAPIFunction);
                                         byte FunctionByte = InternalReadByte(Function);
                                         if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                                         {
@@ -215,19 +158,19 @@ namespace AntiCrack_DotNet
         /// <summary>
         /// Detects inline hooks on specified functions within a module.
         /// </summary>
-        /// <param name="moduleName">The name of the module to check for hooks.</param>
-        /// <param name="functions">The list of functions to check for hooks.</param>
+        /// <param name="ModuleName">The name of the module to check for hooks.</param>
+        /// <param name="Functions">The list of functions to check for hooks.</param>
         /// <returns>Returns true if hooks are detected, otherwise false.</returns>
-        public static bool DetectInlineHooks(string moduleName, string[] functions)
+        public static bool DetectInlineHooks(string ModuleName, string[] Functions)
         {
-            if (moduleName != null && functions != null)
+            if (ModuleName != null && Functions != null)
             {
                 try
                 {
-                    foreach (string function in functions)
+                    foreach (string function in Functions)
                     {
-                        IntPtr hModule = LowLevelGetModuleHandle(moduleName);
-                        IntPtr Function = LowLevelGetProcAddress(hModule, function);
+                        IntPtr hModule = Utils.LowLevelGetModuleHandle(ModuleName);
+                        IntPtr Function = Utils.LowLevelGetProcAddress(hModule, function);
                         byte FunctionByte = InternalReadByte(Function);
                         if (FunctionByte == 255 || FunctionByte == 0x90 || FunctionByte == 0xE9)
                         {
@@ -240,7 +183,11 @@ namespace AntiCrack_DotNet
             return false;
         }
 
-        public static bool IsModule(IntPtr Address)
+        /// <summary>
+        /// Detects if an address is a module or not.
+        /// </summary>
+        /// <returns>Returns true if there's no module, otherwise false.</returns>
+        private static bool IsNotModule(IntPtr Address)
         {
             foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
             {
@@ -341,7 +288,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if(IsModule(FP))
+                            if(IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -352,7 +299,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if (IsModule(FP))
+                            if (IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -363,7 +310,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if (IsModule(FP))
+                            if (IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -374,7 +321,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if (IsModule(FP))
+                            if (IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -385,7 +332,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if (IsModule(FP))
+                            if (IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -396,7 +343,7 @@ namespace AntiCrack_DotNet
                         byte FirstByte = InternalReadByte(FP);
                         if (FirstByte == 0xE9 || FirstByte == 255)
                         {
-                            if (IsModule(FP))
+                            if (IsNotModule(FP))
                                 return true;
                         }
                     }
@@ -411,7 +358,7 @@ namespace AntiCrack_DotNet
                             byte FirstByte = InternalReadByte(FP);
                             if (FirstByte == 0xE9 || FirstByte == 255)
                             {
-                                if (IsModule(FP))
+                                if (IsNotModule(FP))
                                     return true;
                             }
                         }
