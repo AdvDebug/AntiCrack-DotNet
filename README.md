@@ -1,10 +1,10 @@
 # AntiCrack DotNet
-A C# Project which Contains some Anti-Cracking, anti memory injection techniques, etc. (also feel free to open an issue for adding additional anti-debugging features, etc)
+A C# Project which Contains some Anti-Cracking, anti memory injection techniques, etc. (also feel free to open an issue for adding additional anti-debugging features, etc) with syscall support.
 
 ![Damn](https://github.com/AdvDebug/AntiCrack-DotNet/assets/90452585/db8a12aa-b3c6-47db-bb72-6db6894567c7)
 
 ## Anti Debugging
-* GetForegroundWindow (looks for bad active window names to check if it's a known debugger)
+* NtUserGetForegroundWindow (looks for bad active window names to check if it's a known debugger)
 
 * Debugger.IsAttached
 
@@ -77,9 +77,6 @@ A C# Project which Contains some Anti-Cracking, anti memory injection techniques
 * Checking for devices created by VMs or Sandboxes
 
 ## Anti Dll Injection
-* Patching LoadLibraryA
-
-* Patching LoadLibraryW
 
 * Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 
