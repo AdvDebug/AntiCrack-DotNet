@@ -118,7 +118,7 @@ namespace AntiCrack_DotNet
             ConsoleConfig.DisplayResult("NtClose (Protected Handle): ", AntiDebug.NtCloseAntiDebug_ProtectedHandle(syscall), "Tests NtClose with a protected handle.");
             ConsoleConfig.DisplayResult("Parent Process (Checking if the parent process is cmd.exe or explorer.exe): ", AntiDebug.ParentProcessAntiDebug(syscall), "Checks if the parent process is a known process.");
             ConsoleConfig.DisplayResult("Hardware Registers Breakpoints Detection: ", AntiDebug.HardwareRegistersBreakpointsDetection(), "Detects hardware register breakpoints.");
-            //ConsoleConfig.DisplayResult("FindWindow (Looking For Bad Debugger Windows): ", AntiDebug.FindWindowAntiDebug(), "Finds windows with debugger-related titles.");
+            ConsoleConfig.DisplayResult("FindWindow (Looking For Bad Debugger Windows): ", AntiDebug.FindWindowAntiDebug(), "Finds windows with debugger-related titles.");
             ConsoleConfig.DisplayResult("GetTickCount Anti Debug: ", "Skipped", "Unreliable for real anti-debug use.");
             ConsoleConfig.DisplayResult("OutputDebugString Anti Debug: ", "Skipped", "Unreliable for real anti-debug use.");
             ConsoleConfig.DisplayResult("Trying To Crash Non-Managed Debuggers with a Debugger Breakpoint..... ", "Skipped");
