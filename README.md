@@ -73,8 +73,6 @@ A .NET Project which Contains some Anti-Cracking, anti memory injection techniqu
 
 * Checking For Ports on the system (useful if the VM or the sandbox have no ports connected)
 
-* Making Sandboxie Crash Your Application (no longer works)
-
 * Checking for devices created by VMs or Sandboxes
 
 ## Anti Dll Injection
