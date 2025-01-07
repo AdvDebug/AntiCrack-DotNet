@@ -1,6 +1,8 @@
 # AntiCrack DotNet
 A .NET Project which Contains some useful techniques to detect debugging and other harmful actions and bypass methods which can be used by crackers to analyze your assembly. (also feel free to open an issue for adding additional anti-debugging features, etc) with syscall support.
 
+also please star the project if you found it useful, it will encourage me to continue developing it.
+
 ![image](https://github.com/user-attachments/assets/28edc57b-794d-42ea-9a35-63ad21a7f7a2)
 
 
