@@ -4,13 +4,13 @@ using System.Text;
 using System.Threading;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using System.Net;
+using System.Reflection;
+using static AntiCrack_DotNet.Structs;
 using System.Security.Cryptography;
 
 namespace AntiCrack_DotNet
 {
-    internal sealed class AntiDebug
+    public sealed class AntiDebug
     {
         #region WinApi
 
@@ -41,8 +41,8 @@ namespace AntiCrack_DotNet
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtSetInformationThread(IntPtr ThreadHandle, uint ThreadInformationClass, IntPtr ThreadInformation, int ThreadInformationLength);
 
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern IntPtr OpenThread(uint DesiredAccess, bool InheritHandle, int ThreadId);
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern uint NtOpenThread(out IntPtr hThread, uint dwDesiredAccess, ref Structs.OBJECT_ATTRIBUTES ObjectAttributes, ref Structs.CLIENT_ID ClientID);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern uint GetTickCount();
@@ -50,17 +50,17 @@ namespace AntiCrack_DotNet
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr GetCurrentThread();
 
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern bool GetThreadContext(IntPtr hThread, ref Structs.CONTEXT Context);
+        [DllImport("ntdll.dll", SetLastError = true)]
+        private static extern bool NtGetContextThread(IntPtr hThread, ref Structs.CONTEXT Context);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, out uint ProcessInfo, uint nSize, uint ReturnLength);
+        private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, out uint ProcessInfo, uint nSize, uint ReturnLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength);
+        private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
+        private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern int QueryFullProcessImageNameA(SafeHandle hProcess, uint Flags, byte[] lpExeName, Int32[] lpdwSize);
@@ -85,9 +85,6 @@ namespace AntiCrack_DotNet
 
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern IntPtr memset(IntPtr Dst, int val, uint size);
-
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern bool VirtualProtect(IntPtr lpAddress, uint dwSize, uint flNewProtect, out uint lpflOldProtect);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
@@ -167,6 +164,66 @@ namespace AntiCrack_DotNet
         }
 
         /// <summary>
+        /// Checks for the BeingDebugged flag directly.
+        /// </summary>
+        /// <returns>Returns true if a debugger is present, otherwise false.</returns>
+        public static bool BeingDebuggedCheck()
+        {
+            byte[] Code = new byte[30];
+            if (IntPtr.Size == 8)
+                Code = new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x60, 0x00, 0x00, 0x00, 0x0F, 0xB6, 0x40, 0x02, 0xC3 };
+            else
+                Code = new byte[] { 0x64, 0xA1, 0x30, 0x00, 0x00, 0x00, 0x0F, 0xB6, 0x40, 0x02, 0xC3 };
+            IntPtr BeingDebugged = Utils.AllocateCode(Code);
+            if (BeingDebugged != IntPtr.Zero)
+            {
+                try
+                {
+                    Delegates.GenericInt Executed = (Delegates.GenericInt)Marshal.GetDelegateForFunctionPointer(BeingDebugged, typeof(Delegates.GenericInt));
+                    int Result = Executed();
+                    Utils.FreeCode(BeingDebugged);
+                    if(Result == 1)
+                        return true;
+                }
+                catch
+                {
+                    Utils.FreeCode(BeingDebugged);
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks for the NtGlobalFlag directly.
+        /// </summary>
+        /// <returns>Returns true if a debugger is present, otherwise false.</returns>
+        public static bool NtGlobalFlagCheck()
+        {
+            byte[] Code = new byte[30];
+            if (IntPtr.Size == 8)
+                Code = new byte[] { 0x65, 0x48, 0x8B, 0x04, 0x25, 0x60, 0x00, 0x00, 0x00, 0x48, 0x8B, 0x80, 0xBC, 0x00, 0x00, 0x00, 0x48, 0x83, 0xE0, 0x70, 0x48, 0x83, 0xF8, 0x70, 0x74, 0x04, 0x48, 0x31, 0xC0, 0xC3, 0x48, 0xC7, 0xC0, 0x01, 0x00, 0x00, 0x00, 0xC3 };
+            else
+                Code = new byte[] { 0x64, 0xA1, 0x30, 0x00, 0x00, 0x00, 0x8B, 0x40, 0x68, 0x83, 0xE0, 0x70, 0x83, 0xF8, 0x70, 0x74, 0x03, 0x31, 0xC0, 0xC3, 0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3 };
+            IntPtr NtGlobalFlag = Utils.AllocateCode(Code);
+            if (NtGlobalFlag != IntPtr.Zero)
+            {
+                try
+                {
+                    Delegates.GenericInt Executed = (Delegates.GenericInt)Marshal.GetDelegateForFunctionPointer(NtGlobalFlag, typeof(Delegates.GenericInt));
+                    int Result = Executed();
+                    Utils.FreeCode(NtGlobalFlag);
+                    if (Result == 1)
+                        return true;
+                }
+                catch
+                {
+                    Utils.FreeCode(NtGlobalFlag);
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Checks if the process has debug flags set using NtQueryInformationProcess
         /// <param name="Syscall">specifies if we should use syscall to call the WinAPI functions.</param>
         /// </summary>
@@ -178,9 +235,9 @@ namespace AntiCrack_DotNet
             uint Size = sizeof(uint);
             uint Result = 0;
             if (Syscall)
-                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, Class, out ProcessDebugFlags, Size, out Result);
+                Syscalls.SyscallNtQueryInformationProcess(Class, out ProcessDebugFlags, Size, out Result);
             else
-                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1F, out ProcessDebugFlags, sizeof(uint), 0);
+                NtQueryInformationProcess(new IntPtr(-1), 0x1F, out ProcessDebugFlags, sizeof(uint), 0);
             if (ProcessDebugFlags == 0)
                 return true;
             return false;
@@ -199,9 +256,9 @@ namespace AntiCrack_DotNet
                 Size = sizeof(uint) * 2;
             uint Result = 0;
             if(Syscall)
-                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 7, out DebuggerPresent, Size, out Result);
+                Syscalls.SyscallNtQueryInformationProcess(7, out DebuggerPresent, Size, out Result);
             else
-                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 7, out DebuggerPresent, Size, 0);
+                NtQueryInformationProcess(new IntPtr(-1), 7, out DebuggerPresent, Size, 0);
             if (DebuggerPresent != 0)
                 return true;
             return false;
@@ -220,9 +277,9 @@ namespace AntiCrack_DotNet
                 Size = sizeof(uint) * 2;
 
             if (Syscall)
-                Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1E, out hDebugObject, Size, 0);
+                Syscalls.SyscallNtQueryInformationProcess(0x1E, out hDebugObject, Size, 0);
             else
-                NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, 0x1E, out hDebugObject, Size, 0);
+                NtQueryInformationProcess(new IntPtr(-1), 0x1E, out hDebugObject, Size, 0);
             if (hDebugObject != IntPtr.Zero)
                 return true;
             return false;
@@ -234,9 +291,9 @@ namespace AntiCrack_DotNet
         /// <returns>Returns "Success" if the patching was successful, otherwise "Failed".</returns>
         public static string AntiDebugAttach()
         {
-            IntPtr NtdllModule = GetModuleHandle("ntdll.dll");
-            IntPtr DbgUiRemoteBreakinAddress = GetProcAddress(NtdllModule, "DbgUiRemoteBreakin");
-            IntPtr DbgBreakPointAddress = GetProcAddress(NtdllModule, "DbgBreakPoint");
+            IntPtr NtdllModule = Utils.LowLevelGetModuleHandle("ntdll.dll");
+            IntPtr DbgUiRemoteBreakinAddress = Utils.LowLevelGetProcAddress(NtdllModule, "DbgUiRemoteBreakin");
+            IntPtr DbgBreakPointAddress = Utils.LowLevelGetProcAddress(NtdllModule, "DbgBreakPoint");
             byte[] Int3InvaildCode = { 0xCC };
             byte[] RetCode = { 0xC3 };
             bool Status = WriteProcessMemory(Process.GetCurrentProcess().SafeHandle, DbgUiRemoteBreakinAddress, Int3InvaildCode, 1, 0);
@@ -265,7 +322,7 @@ namespace AntiCrack_DotNet
 
                         foreach (string BadWindows in BadWindowNames)
                         {
-                            if (title.IndexOf(BadWindows, StringComparison.OrdinalIgnoreCase) >= 0)
+                            if (Utils.Contains(title, BadWindows))
                             {
                                 GetWindow.Close();
                                 return true;
@@ -317,15 +374,33 @@ namespace AntiCrack_DotNet
             try
             {
                 bool AnyThreadFailed = false;
+                int PID = Process.GetCurrentProcess().Id;
                 ProcessThreadCollection GetCurrentProcessThreads = Process.GetCurrentProcess().Threads;
                 foreach (ProcessThread Threads in GetCurrentProcessThreads)
                 {
-                    IntPtr ThreadHandle = OpenThread(0x0020, false, Threads.Id);
-                    if (ThreadHandle != IntPtr.Zero)
+                    CLIENT_ID CI = new CLIENT_ID
                     {
-                        uint Status = NtSetInformationThread(ThreadHandle, 0x11, IntPtr.Zero, 0);
-                        NtClose(ThreadHandle);
-                        if (Status != 0x00000000)
+                        UniqueProcess = (IntPtr)PID,
+                        UniqueThread = (IntPtr)Threads.Id
+                    };
+
+                    OBJECT_ATTRIBUTES Attributes = new OBJECT_ATTRIBUTES
+                    {
+                        Length = Marshal.SizeOf(typeof(OBJECT_ATTRIBUTES)),
+                        RootDirectory = IntPtr.Zero,
+                        ObjectName = IntPtr.Zero,
+                        Attributes = 0,
+                        SecurityDescriptor = IntPtr.Zero,
+                        SecurityQualityOfService = IntPtr.Zero
+                    };
+
+                    IntPtr hThread = IntPtr.Zero;
+                    uint Status = NtOpenThread(out hThread, 0x0020, ref Attributes, ref CI);
+                    if (Status == 0 || hThread != IntPtr.Zero)
+                    {
+                        uint Status2 = NtSetInformationThread(hThread, 0x11, IntPtr.Zero, 0);
+                        NtClose(hThread);
+                        if (Status2 != 0x00000000)
                             AnyThreadFailed = true;
                     }
                 }
@@ -378,7 +453,7 @@ namespace AntiCrack_DotNet
         {
             try
             {
-                Debugger.Break();
+                Utils.CallInternalCLRFunction("BreakInternal", typeof(Debugger), BindingFlags.NonPublic | BindingFlags.Static, null, null);
                 return false;
             }
             catch
@@ -397,20 +472,41 @@ namespace AntiCrack_DotNet
         {
             Structs.CONTEXT Context = new Structs.CONTEXT();
             Context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
+            int PID = Process.GetCurrentProcess().Id;
             foreach (ProcessThread Threads in Process.GetCurrentProcess().Threads)
             {
                 uint THREAD_GET_CONTEXT = 0x0008;
                 uint THREAD_QUERY_INFORMATION = 0x0040;
-                IntPtr hThread = OpenThread(THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION, false, Threads.Id);
-                if (GetThreadContext(hThread, ref Context))
+                CLIENT_ID CI = new CLIENT_ID
                 {
-                    if ((Context.Dr1 != 0x00 || Context.Dr2 != 0x00 || Context.Dr3 != 0x00 || Context.Dr6 != 0x00 || Context.Dr7 != 0x00))
+                    UniqueProcess = (IntPtr)PID,
+                    UniqueThread = (IntPtr)Threads.Id
+                };
+
+                OBJECT_ATTRIBUTES Attributes = new OBJECT_ATTRIBUTES
+                {
+                    Length = Marshal.SizeOf(typeof(OBJECT_ATTRIBUTES)),
+                    RootDirectory = IntPtr.Zero,
+                    ObjectName = IntPtr.Zero,
+                    Attributes = 0,
+                    SecurityDescriptor = IntPtr.Zero,
+                    SecurityQualityOfService = IntPtr.Zero
+                };
+
+                IntPtr hThread = IntPtr.Zero;
+                uint Status = NtOpenThread(out hThread, THREAD_QUERY_INFORMATION, ref Attributes, ref CI);
+                if (Status == 0 || hThread != IntPtr.Zero)
+                {
+                    if (NtGetContextThread(hThread, ref Context))
                     {
-                        NtClose(hThread);
-                        return true;
+                        if ((Context.Dr1 != 0x00 || Context.Dr2 != 0x00 || Context.Dr3 != 0x00 || Context.Dr6 != 0x00 || Context.Dr7 != 0x00))
+                        {
+                            NtClose(hThread);
+                            return true;
+                        }
                     }
+                    NtClose(hThread);
                 }
-                NtClose(hThread);
             }
             return false;
         }
@@ -444,7 +540,7 @@ namespace AntiCrack_DotNet
             {
                 Structs.PROCESS_BASIC_INFORMATION PBI = new Structs.PROCESS_BASIC_INFORMATION();
                 uint ProcessBasicInformation = 0;
-                uint Result = Syscall ? Syscalls.SyscallNtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0) : NtQueryInformationProcess(Process.GetCurrentProcess().SafeHandle, ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0);
+                uint Result = Syscall ? Syscalls.SyscallNtQueryInformationProcess(ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0) : NtQueryInformationProcess(new IntPtr(-1), ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0);
                 if (Result == 0)
                 {
                     int ParentPID = PBI.InheritedFromUniqueProcessId.ToInt32();
@@ -504,7 +600,7 @@ namespace AntiCrack_DotNet
             {
                 memset(AllocatedSpace, 1, 0xC3);
                 uint OldProtect = 0;
-                if (VirtualProtect(AllocatedSpace, SysInfo.PageSize, PAGE_EXECUTE_READWRITE | PAGE_GUARD, out OldProtect))
+                if (Utils.ProtectMemory(AllocatedSpace, (UIntPtr)SysInfo.PageSize, PAGE_EXECUTE_READWRITE | PAGE_GUARD, out OldProtect))
                 {
                     try
                     {

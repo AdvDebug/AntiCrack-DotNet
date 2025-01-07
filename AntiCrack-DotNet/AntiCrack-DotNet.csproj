@@ -30,9 +30,9 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
@@ -69,8 +69,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AntiDebug.cs" />
-    <Compile Include="AntiDllInjection.cs" />
+    <Compile Include="AntiInjection.cs" />
     <Compile Include="AntiVirtualization.cs" />
+    <Compile Include="Delegates.cs" />
+    <Compile Include="Hooks.cs" />
     <Compile Include="HooksDetection.cs" />
     <Compile Include="OtherChecks.cs" />
     <Compile Include="Program.cs" />

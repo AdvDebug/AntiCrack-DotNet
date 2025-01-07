@@ -1,10 +1,13 @@
 ﻿using System;
-using System.Security;
 using System.Reflection;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
+using System.Text;
+using System.Diagnostics;
 using static AntiCrack_DotNet.Structs;
+using System.Security.Cryptography;
+using System.IO;
+using static AntiCrack_DotNet.OtherChecks;
 
 namespace AntiCrack_DotNet
 {
@@ -107,8 +110,6 @@ namespace AntiCrack_DotNet
             uint result = Syscall ? Syscalls.SyscallNtQuerySystemInformation(SystemSecureBootInformation, ref SecureBoot, (uint)Marshal.SizeOf(SecureBoot), out ReturnLength) : NtQuerySystemInformation(SystemSecureBootInformation, ref SecureBoot, (uint)Marshal.SizeOf(SecureBoot), out ReturnLength);
             if (result >= 0)
             {
-                if (!SecureBoot.SecureBootCapable)
-                    return false;
                 if (SecureBoot.SecureBootEnabled)
                     return true;
             }
@@ -172,15 +173,73 @@ namespace AntiCrack_DotNet
         /// <summary>
         /// Checks if the current assembly is invoked by another assembly.
         /// </summary>
+        /// <param name="DetectHooks">True if we are gonna check for hooks that may return incorrect assembly results, if we found a hook (or we are invoked) the method will return true.</param>
         /// <returns>Returns true if the current assembly is invoked by another assembly, otherwise false.</returns>
-        public static bool IsInovkedAssembly()
+        public static bool IsInvokedAssembly(bool DetectHooks)
         {
-            MethodInfo Method = typeof(Assembly).GetMethod("GetExecutingAssembly");
-            Assembly GetCallingAssem = (Assembly)Method.Invoke(null, null);
-            if (GetCallingAssem.Location != Application.ExecutablePath)
-                return true;
+            Assembly EntryAsm = Utils.LowLevelGetEntryAssembly();
+            Assembly EntryAssemblyDM = new AppDomainManager().EntryAssembly;
+            Assembly AsmEP = Assembly.GetEntryAssembly();
+            Assembly ExecAsm = Utils.LowLevelGetExecutingAssembly();
+            Assembly ExecutingAssembly = Assembly.GetExecutingAssembly();
+            bool IsExecAsmNotNull = ExecAsm != null;
+            bool IsEntryAsmNotNull = EntryAsm != null;
+            bool IsEntryAssemblyDMNotNull = EntryAssemblyDM != null;
+            string ExecutablePath = Process.GetCurrentProcess().MainModule.FileName;
+            if (DetectHooks)
+            {
+                if (IsEntryAsmNotNull)
+                {
+                    if (AsmEP == null)
+                        return true;
+                    if (EntryAssemblyDM == null)
+                        return true;
+                    if (EntryAsm.Location != AsmEP.Location || EntryAsm.Location != EntryAssemblyDM.Location || EntryAsm.Location != ExecutablePath)
+                        return true;
+                }
+
+                if (IsEntryAssemblyDMNotNull)
+                {
+                    if (AsmEP == null)
+                        return true;
+                    if (EntryAssemblyDM.Location != AsmEP.Location || EntryAssemblyDM.Location != ExecutablePath || AsmEP.Location != ExecutablePath)
+                        return true;
+                }
+
+                if (AsmEP == null && IsEntryAsmNotNull || AsmEP == null && IsEntryAssemblyDMNotNull)
+                    return true;
+
+                if (IsExecAsmNotNull)
+                {
+                    if (ExecutingAssembly == null)
+                        return true;
+                    if (ExecAsm.Location != ExecutingAssembly.Location)
+                        return true;
+                }
+            }
+
+            if (IsEntryAsmNotNull || IsExecAsmNotNull)
+            {
+                if (IsExecAsmNotNull && IsEntryAsmNotNull && EntryAsm.Location != ExecAsm.Location)
+                    return true;
+                if (IsExecAsmNotNull && ExecAsm.Location != ExecutablePath)
+                    return true;
+                if (IsEntryAsmNotNull && IsExecAsmNotNull && EntryAsm.GetName().Name != ExecAsm.GetName().Name)
+                    return true;
+            }
+
+            if (EntryAssemblyDM != null || AsmEP != null)
+            {
+                if (ExecutingAssembly.Location != EntryAssemblyDM.Location)
+                    return true;
+                if (ExecutingAssembly.GetName().Name != EntryAssemblyDM.GetName().Name)
+                    return true;
+                if (ExecutingAssembly.Location != ExecutablePath)
+                    return true;
+                if (ExecutingAssembly.Location != AsmEP.Location)
+                    return true;
+            }
             return false;
         }
     }
-
 }

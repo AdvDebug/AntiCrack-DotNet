@@ -1,32 +1,18 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
-using System.IO;
-using System.Linq;
 using System.Management;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Messaging;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.Win32;
 using static AntiCrack_DotNet.Structs;
+using static AntiCrack_DotNet.Delegates;
+using static AntiCrack_DotNet.Utils;
+using System.Threading;
 
 namespace AntiCrack_DotNet
 {
     public sealed class Syscalls
     {
         #region WinApi
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtAllocateVirtualMemory(IntPtr ProcessHandle, ref IntPtr BaseAddress, uint ZeroBits, ref uint RegionSize, uint AllocationType, uint Protect);
-
-        [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
 
         [DllImport("ntdll.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern void RtlInitUnicodeString(out Structs.UNICODE_STRING DestinationString, string SourceString);
@@ -54,26 +40,58 @@ namespace AntiCrack_DotNet
         #region Utils
 
         /// <summary>
+        /// Get the most common syscall number which is used across different builds.
+        /// </summary>
+        /// <param name="Function">the function name to search for the syscall.</param>
+        /// <returns>The syscall byte.</returns>
+        public static byte GetCommonSyscallByte(string Function)
+        {
+            foreach (Syscall GetSyscalls in syscalls)
+            {
+                if (GetSyscalls.Name.ToLower() == Function.ToLower())
+                {
+                    return GetSyscalls.CommonSyscall;
+                }
+            }
+            return 0x00;
+        }
+
+        /// <summary>
         /// Searches for the syscall number from the function bytes.
         /// </summary>
         /// <param name="bytes">the bytes to search for the syscall.</param>
         /// <returns>The syscall byte.</returns>
-        public static byte ExtractSyscallByte(byte[] bytes)
+        public static byte ExtractSyscallByte(byte[] bytes, string Function)
         {
+            bool RetFoundFirst = false;
             for (int i = 0; i < bytes.Length; i++)
             {
                 if (bytes[i] == 0xB8)
                 {
+                    if (RetFoundFirst || bytes[0] == 0xE9 || bytes[0] == 0x90)
+                    {
+                        byte Common = GetCommonSyscallByte(Function);
+                        if(Common != 0x00)
+                        {
+                            return Common;
+                        }
+                    }
                     return bytes[i + 1];
+                }
+
+                if (bytes[i] == 0xC3 || bytes[i] == 0xC2)
+                {
+                    RetFoundFirst = true;
                 }
             }
             return 0;
         }
 
-        private class Syscall
+        private sealed class Syscall
         {
             public string Name { get; set; }
             public List<(string BuildNumber, byte SyscallNumber)> BuildNumber { get; set; }
+            public byte CommonSyscall { get; set; }
         }
 
         private static List<Syscall> syscalls = new List<Syscall>();
@@ -81,12 +99,13 @@ namespace AntiCrack_DotNet
         /// <summary>
         /// Initializes the build numbers along with syscalls.
         /// </summary>
-        public static void InitSyscallList()
+        public static void InitSyscall()
         {
             syscalls = new List<Syscall>
             {
                 new Syscall
                 {
+                    CommonSyscall = 0xF,
                     Name = "NtClose",
                     BuildNumber = new List<(string, byte)>
                     {
@@ -115,6 +134,7 @@ namespace AntiCrack_DotNet
                 },
                 new Syscall
                 {
+                    CommonSyscall = 0x19,
                     Name = "NtQueryInformationProcess",
                     BuildNumber = new List<(string, byte)>
                     {
@@ -143,6 +163,7 @@ namespace AntiCrack_DotNet
                 },
                 new Syscall
                 {
+                    CommonSyscall = 0x36,
                     Name = "NtQuerySystemInformation",
                     BuildNumber = new List<(string DisplayVersion, byte SyscallNumber)>
                     {
@@ -168,7 +189,65 @@ namespace AntiCrack_DotNet
                         ("25915", 0x36),
                         ("26000", 0x36)
                     }
-                }
+                },
+                new Syscall
+                {
+                    CommonSyscall = 0x23,
+                    Name = "NtQueryVirtualMemory",
+                    BuildNumber = new List<(string, byte)>
+                    {
+                        ("7601", 0x20),
+                        ("9200", 0x21),
+                        ("9600", 0x22),
+                        ("10240", 0x23),
+                        ("10586", 0x23),
+                        ("14393", 0x23),
+                        ("15063", 0x23),
+                        ("16299", 0x23),
+                        ("17134", 0x23),
+                        ("17763", 0x23),
+                        ("18362", 0x23),
+                        ("18363", 0x23),
+                        ("19041", 0x23),
+                        ("19042", 0x23),
+                        ("19043", 0x23),
+                        ("19044", 0x23),
+                        ("19045", 0x23),
+                        ("22621", 0x23),
+                        ("22631", 0x23),
+                        ("25915", 0x23),
+                        ("26000", 0x23)
+                    }
+                },
+                new Syscall
+                {
+                    CommonSyscall = 0x25,
+                    Name = "NtQueryInformationThread",
+                    BuildNumber = new List<(string, byte)>
+                    {
+                        ("7601", 0x22),
+                        ("9200", 0x23),
+                        ("9600", 0x24),
+                        ("10240", 0x25),
+                        ("10586", 0x25),
+                        ("14393", 0x25),
+                        ("15063", 0x25),
+                        ("16299", 0x25),
+                        ("17134", 0x25),
+                        ("17763", 0x25),
+                        ("18362", 0x25),
+                        ("18363", 0x25),
+                        ("19041", 0x25),
+                        ("19042", 0x25),
+                        ("19043", 0x25),
+                        ("19044", 0x25),
+                        ("19045", 0x25),
+                        ("22621", 0x25),
+                        ("22631", 0x25),
+                        ("25915", 0x25),
+                        ("26000", 0x25)
+                    }
+                },
             };
         }
 
@@ -324,14 +403,14 @@ namespace AntiCrack_DotNet
         /// Gets the system build number.
         /// </summary>
         /// <param name="ExitOnBuildNumberTamper">Exit if we found that the build number was tampered with.</param>
-        /// <param name="OnlyShowOnTamper">Only print a console message that says that the function was tampered with. ExitOnBuildNumberTamper also needs to be enabled for this but the process won't die.</param>
+        /// <param name="OnlyShowOnTamper">Only print a console message that says that the function was tampered with.</param>
         /// <returns>The current system build number.</returns>
         public static string GetBuildNumber(bool ExitOnBuildNumberTamper, bool OnlyShowOnTamper)
         {
             string WinAPI = GetWindowsBuildNumberWinAPI();
             string WMI = GetWindowsBuildNumberWMI();
             string Registry = GetWindowsBuildNumberReg();
-            if (ExitOnBuildNumberTamper && IsTampered(WinAPI, WMI, Registry))
+            if (IsTampered(WinAPI, WMI, Registry))
             {
                 Tampered = true;
                 if (OnlyShowOnTamper)
@@ -344,15 +423,9 @@ namespace AntiCrack_DotNet
                         ShowedBefore = true;
                     }
                 }
-                else
+                else if(ExitOnBuildNumberTamper)
                 {
-                    Environment.Exit(0);
-                    unsafe
-                    {
-                        int* ptr = null;
-                        *ptr = 42;
-                    }
-                    throw new Exception(new Random().Next(int.MinValue, int.MaxValue).ToString());
+                    ForceExit();
                 }
             }
             return GetMostMatching(WinAPI, WMI, Registry);
@@ -385,15 +458,14 @@ namespace AntiCrack_DotNet
                         }
                     }
                 }
-                IntPtr hModule = Utils.LowLevelGetModuleHandle(Library);
-                IntPtr Address = Utils.LowLevelGetProcAddress(hModule, Function);
+                IntPtr Address = GetFunctionExportAddress(Library, Function);
                 if (Address != IntPtr.Zero)
                 {
                     byte[] FunctionCode = new byte[40];
-                    Utils.CopyMem(FunctionCode, Address);
+                    CopyMem(FunctionCode, Address, false);
                     if (Extract)
                     {
-                        SyscallNumber = ExtractSyscallByte(FunctionCode);
+                        SyscallNumber = ExtractSyscallByte(FunctionCode, Function);
                     }
                     if (SyscallNumber != 0)
                     {
@@ -407,20 +479,7 @@ namespace AntiCrack_DotNet
                             byte RetValue = ExtractSyscallRetValue(Code);
                             Code = new byte[] { 0xB8, SyscallNumber, 0x00, 0x00, 0x00, 0x64, 0xFF, 0x15, 0xC0, 0x00, 0x00, 0x00, 0xC2, RetValue, 0x00 };
                         }
-                        IntPtr Allocated = IntPtr.Zero;
-                        uint Length = (uint)Code.Length;
-                        uint Status = NtAllocateVirtualMemory(new IntPtr(-1), ref Allocated, 0, ref Length, 0x1000, PAGE_EXECUTE_READWRITE);
-                        if (Status == 0)
-                        {
-                            unsafe
-                            {
-                                fixed (byte* source = Code)
-                                {
-                                    Buffer.MemoryCopy(source, (void*)Allocated, Code.Length, Code.Length);
-                                }
-                            }
-                            return Allocated;
-                        }
+                        return AllocateCode(Code);
                     }
                 }
                 return IntPtr.Zero;
@@ -428,88 +487,77 @@ namespace AntiCrack_DotNet
             catch
             {
                 //this shouldn't happen in normal conditions
-                Environment.Exit(0);
-                unsafe
-                {
-                    int* ptr = null;
-                    *ptr = 42;
-                }
+                ForceExit();
                 return IntPtr.Zero;
             }
         }
-        #endregion
-
-        #region Syscalls Delegates
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, out uint ProcessInfo, uint nSize, out uint ReturnLength);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQueryInformationProcess2(SafeHandle hProcess, uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQueryInformationProcess3(SafeHandle hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate bool SysNtClose(IntPtr Handle);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_CODEINTEGRITY_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQuerySystemInformation2(uint SystemInformationClass, ref Structs.SYSTEM_KERNEL_DEBUGGER_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
-
-        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-        private delegate uint SysNtQuerySystemInformation3(uint SystemInformationClass, ref Structs.SYSTEM_SECUREBOOT_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
         #endregion
 
         #region Syscalls
 
-        private static uint PAGE_EXECUTE_READWRITE = 0x40;
-        private static uint MEM_RELEASE = 0x00008000;
-
-        public static uint SyscallNtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, out uint ProcessInfo, uint nSize, out uint ReturnLength)
+        public static uint SyscallNtQueryInformationProcess(uint ProcessInfoClass, out uint ProcessInfo, uint nSize, out uint ReturnLength)
         {
             ProcessInfo = 0;
             ReturnLength = 0;
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQueryInformationProcess");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQueryInformationProcess Executed = (SysNtQueryInformationProcess)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess));
-                uint Result = Executed(hProcess, ProcessInfoClass, out ProcessInfo, nSize, out ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQueryInformationProcess Executed = (SysNtQueryInformationProcess)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess));
+                    uint Result = Executed(new IntPtr(-1), ProcessInfoClass, out ProcessInfo, nSize, out ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
         }
 
-        public static uint SyscallNtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength)
+        public static uint SyscallNtQueryInformationProcess(uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength)
         {
             ProcessInfo = IntPtr.Zero;
             ReturnLength = 0;
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQueryInformationProcess");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQueryInformationProcess2 Executed = (SysNtQueryInformationProcess2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess2));
-                uint Result = Executed(hProcess, ProcessInfoClass, out ProcessInfo, nSize, ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQueryInformationProcess2 Executed = (SysNtQueryInformationProcess2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess2));
+                    uint Result = Executed(new IntPtr(-1), ProcessInfoClass, out ProcessInfo, nSize, ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
         }
 
-        public static uint SyscallNtQueryInformationProcess(SafeHandle hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength)
+        public static uint SyscallNtQueryInformationProcess(uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength)
         {
             ProcessInfo = new PROCESS_BASIC_INFORMATION();
             ReturnLength = 0;
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQueryInformationProcess");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQueryInformationProcess3 Executed = (SysNtQueryInformationProcess3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess3));
-                uint Result = Executed(hProcess, ProcessInfoClass, ref ProcessInfo, nSize, ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQueryInformationProcess3 Executed = (SysNtQueryInformationProcess3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess3));
+                    uint Result = Executed(new IntPtr(-1), ProcessInfoClass, ref ProcessInfo, nSize, ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
         }
@@ -519,10 +567,17 @@ namespace AntiCrack_DotNet
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtClose");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtClose Executed = (SysNtClose)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtClose));
-                bool Result = Executed(Handle);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtClose Executed = (SysNtClose)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtClose));
+                    bool Result = Executed(Handle);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                finally
+                {
+                    FreeCode(Syscall);
+                }
             }
             return false;
         }
@@ -533,10 +588,17 @@ namespace AntiCrack_DotNet
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQuerySystemInformation");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQuerySystemInformation Executed = (SysNtQuerySystemInformation)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation));
-                uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQuerySystemInformation Executed = (SysNtQuerySystemInformation)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation));
+                    uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
         }
@@ -547,10 +609,17 @@ namespace AntiCrack_DotNet
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQuerySystemInformation");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQuerySystemInformation2 Executed = (SysNtQuerySystemInformation2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation2));
-                uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQuerySystemInformation2 Executed = (SysNtQuerySystemInformation2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation2));
+                    uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
         }
@@ -561,12 +630,60 @@ namespace AntiCrack_DotNet
             IntPtr Syscall = SyscallCode("ntdll.dll", "NtQuerySystemInformation");
             if (Syscall != IntPtr.Zero)
             {
-                SysNtQuerySystemInformation3 Executed = (SysNtQuerySystemInformation3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation3));
-                uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                VirtualFree(Syscall, 0, MEM_RELEASE);
-                return Result;
+                try
+                {
+                    SysNtQuerySystemInformation3 Executed = (SysNtQuerySystemInformation3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation3));
+                    uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
             }
             return 0;
+        }
+
+        public static uint SyscallNtQueryVirtualMemory(IntPtr ProcessHandle, IntPtr BaseAddress, uint MemoryInformationClass, ref Structs.MEMORY_BASIC_INFORMATION MemoryInformation, uint MemoryInformationLength, out uint ReturnLength)
+        {
+            ReturnLength = 0;
+            IntPtr Syscall = SyscallCode("ntdll.dll", "NtQueryVirtualMemory");
+            if (Syscall != IntPtr.Zero)
+            {
+                try
+                {
+                    SysNtQueryVirtualMemory Executed = (SysNtQueryVirtualMemory)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryVirtualMemory));
+                    uint Result = Executed(ProcessHandle, BaseAddress, MemoryInformationClass, ref MemoryInformation, MemoryInformationLength, out ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
+            }
+            return 0;
+        }
+
+        public static int SyscallNtQueryInformationThread(IntPtr ThreadHandle, int ThreadInformationClass, ref IntPtr ThreadInformation, uint ThreadInformationLength, IntPtr ReturnLength)
+        {
+            IntPtr Syscall = SyscallCode("ntdll.dll", "NtQueryInformationThread");
+            if (Syscall != IntPtr.Zero)
+            {
+                try
+                {
+                    SysNtQueryInformationThread Executed = (SysNtQueryInformationThread)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationThread));
+                    int Result = Executed(ThreadHandle, ThreadInformationClass, ref ThreadInformation, ThreadInformationLength, ReturnLength);
+                    FreeCode(Syscall);
+                    return Result;
+                }
+                catch
+                {
+                    FreeCode(Syscall);
+                }
+            }
+            return 1;
         }
         #endregion
     }
