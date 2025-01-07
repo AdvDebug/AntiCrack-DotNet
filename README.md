@@ -122,5 +122,8 @@ A .NET Project which Contains some useful techniques to detect debugging and oth
 
 * Detecting CLR Functions Hooking (like harmony hooks).
 
+## Why in C# even tho it's easily decompiled?
+I think C# as AOT is being developed more and more that it's gonna be suitable for this kind of stuff and such tool may come in handy.
+
 # Notice
 This Project are created for educational purposes only, also this project are licensed under MIT License. you can use the code however you please, just please use it responsibly (NOT for malware) (e.g. you are developing an anti-cheat).
