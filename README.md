@@ -88,7 +88,7 @@ A .NET Project which Contains some useful techniques to detect debugging and oth
 
 * Checking for flags manipulation (for x64 and x86) checks to see if it's correctly handled.
 
-## Anti Dll Injection
+## Anti Injection
 
 * Taking Advantage of Binary Image Signature Mitigation Policy to prevent injecting Non-Microsoft Binaries.
 
