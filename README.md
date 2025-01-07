@@ -3,6 +3,8 @@ A .NET Project which Contains some useful techniques to detect debugging and oth
 
 ![image](https://github.com/user-attachments/assets/a49389e4-105b-41d4-8f3a-4d5851022c79)
 
+## Hooks
+* Preventing unauthorized retrieval of .NET functions pointer to prevent raw memory modifications of functions at runtime
 
 ## Anti Debugging
 * NtUserGetForegroundWindow (looks for bad active window names to check if it's a known debugger)
