@@ -1,7 +1,7 @@
 # AntiCrack DotNet
 A .NET Project which Contains some useful techniques to detect debugging and other harmful actions and bypass methods which can be used by crackers to analyze your assembly. (also feel free to open an issue for adding additional anti-debugging features, etc) with syscall support.
 
-also please star the project if you found it useful, it will encourage me to continue developing it.
+you can see it's showcase <a href="https://www.youtube.com/watch?v=kQF2Q8uiH3I">here</a>. also please star the project if you found it useful, it will encourage me to continue developing it.
 
 ![image](https://github.com/user-attachments/assets/28edc57b-794d-42ea-9a35-63ad21a7f7a2)
 
@@ -98,7 +98,9 @@ also please star the project if you found it useful, it will encourage me to con
 
 * Thread Injection Detection
 
-* Using PEB to change the main module info of the program which is main module name and module base address at runtime.
+* changing the main module info of the program like module name, base address, address of entrypoint, size of image, etc to prevent info lookups, dumping, and modification.
+
+* Changing the CLR module image magic in the memory of the process to try to prevent (some) external processes/software from retrieving some critical info about our assemblies while still being functional by making it seem like debugger exports is missing.
 
 * Detecting process hollowing in our program by checking suspicious image base address.
 
