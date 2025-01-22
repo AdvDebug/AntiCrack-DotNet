@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 using System.Globalization;
 using static AntiCrack_DotNet.Delegates;
 using System.Diagnostics;
-using System.CodeDom;
 
 namespace AntiCrack_DotNet
 {
@@ -175,6 +174,55 @@ namespace AntiCrack_DotNet
 
             }
             return LowLevelGetProcAddress(hModule, Function);
+        }
+
+        /// <summary>
+        /// Writes the struct to a pointer.
+        /// </summary>
+        /// <param name="structure">The struct.</param>
+        /// <param name="ptr">The pointer to the address that represents the struct.</param>
+        /// <param name="fDeleteOld">An indicator to whether we should delete the old struct after writing or not.</param>
+        /// <param name="ChangeMemoryProtection">An indicator to whether we should change the ptr memory protection before writing.</param>
+        /// <returns>return true if successful, otherwise false.</returns>
+        public static bool WriteStructToPtr<T>(T structure, IntPtr ptr, bool fDeleteOld, bool ChangeMemoryProtection)
+        {
+            try
+            {
+                if (ChangeMemoryProtection)
+                {
+                    uint Old = 0;
+                    ProtectMemory(ptr, (UIntPtr)Marshal.SizeOf(structure), PAGE_EXECUTE_READWRITE, out Old);
+                    Marshal.StructureToPtr(structure, ptr, fDeleteOld);
+                    ProtectMemory(ptr, (UIntPtr)Marshal.SizeOf(structure), Old, out Old);
+                    return true;
+                }
+                else
+                {
+                    Marshal.StructureToPtr(structure, ptr, fDeleteOld);
+                    return true;
+                }
+            }
+            catch
+            {
+                
+            }
+            return false;
+        }
+
+        public static string GetCurrentCLRModuleName()
+        {
+            string[] CLRs = { "clr.dll", "coreclr.dll" };
+            foreach(ProcessModule module in Process.GetCurrentProcess().Modules)
+            {
+                foreach (string CLR in CLRs)
+                {
+                    if (module.ModuleName.ToLower() == CLR)
+                    {
+                        return module.ModuleName;
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -623,9 +671,9 @@ namespace AntiCrack_DotNet
             return false;
         }
 
-        public static bool GetVirtualMemoryQuery(bool Syscall, IntPtr BaseAddress, ref Structs.MEMORY_BASIC_INFORMATION MemoryInformation, out uint ReturnLength)
+        public static bool GetVirtualMemoryQuery(bool Syscall, IntPtr BaseAddress, ref MEMORY_BASIC_INFORMATION MemoryInformation, out uint ReturnLength)
         {
-            uint Length = (uint)Marshal.SizeOf(typeof(Structs.MEMORY_BASIC_INFORMATION));
+            uint Length = (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION));
             uint Result = Syscall ? Syscalls.SyscallNtQueryVirtualMemory(new IntPtr(-1), BaseAddress, 0, ref MemoryInformation, Length, out ReturnLength) : NtQueryVirtualMemory(new IntPtr(-1), BaseAddress, 0, ref MemoryInformation, Length, out ReturnLength);
             if (Result == 0)
                 return true;

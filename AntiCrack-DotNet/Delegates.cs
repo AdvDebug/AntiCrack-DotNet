@@ -37,5 +37,8 @@ namespace AntiCrack_DotNet
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         public delegate int GenericInt();
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        public delegate IntPtr KeyboardHook(int nCode, IntPtr wParam, IntPtr lParam);
     }
 }

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
-using static AntiCrack_DotNet.Structs;
 
 namespace AntiCrack_DotNet
 {
@@ -189,7 +187,7 @@ namespace AntiCrack_DotNet
             public uint SizeOfUninitializedData;
             public uint AddressOfEntryPoint;
             public uint BaseOfCode;
-            public ulong ImageBaseLong;
+            public ulong ImageBase;
             public uint SectionAlignment;
             public uint FileAlignment;
             public ushort MajorOperatingSystemVersion;
@@ -417,6 +415,16 @@ namespace AntiCrack_DotNet
             public IntPtr UnicodeCaseTableData;
             public uint NumberOfProcessors;
             public uint NtGlobalFlag;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct KBDLLHOOKSTRUCT
+        {
+            public uint vkCode;
+            public uint scanCode;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
         }
     }
 }

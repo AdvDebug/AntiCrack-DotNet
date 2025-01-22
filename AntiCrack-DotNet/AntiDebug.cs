@@ -42,7 +42,7 @@ namespace AntiCrack_DotNet
         private static extern uint NtSetInformationThread(IntPtr ThreadHandle, uint ThreadInformationClass, IntPtr ThreadInformation, int ThreadInformationLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtOpenThread(out IntPtr hThread, uint dwDesiredAccess, ref Structs.OBJECT_ATTRIBUTES ObjectAttributes, ref Structs.CLIENT_ID ClientID);
+        private static extern uint NtOpenThread(out IntPtr hThread, uint dwDesiredAccess, ref OBJECT_ATTRIBUTES ObjectAttributes, ref CLIENT_ID ClientID);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern uint GetTickCount();
@@ -51,7 +51,7 @@ namespace AntiCrack_DotNet
         private static extern IntPtr GetCurrentThread();
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern bool NtGetContextThread(IntPtr hThread, ref Structs.CONTEXT Context);
+        private static extern bool NtGetContextThread(IntPtr hThread, ref CONTEXT Context);
 
         [DllImport("ntdll.dll", SetLastError = true)]
         private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, out uint ProcessInfo, uint nSize, uint ReturnLength);
@@ -60,7 +60,7 @@ namespace AntiCrack_DotNet
         private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, out IntPtr ProcessInfo, uint nSize, uint ReturnLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, ref Structs.PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
+        private static extern uint NtQueryInformationProcess(IntPtr hProcess, uint ProcessInfoClass, ref PROCESS_BASIC_INFORMATION ProcessInfo, uint nSize, uint ReturnLength);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern int QueryFullProcessImageNameA(SafeHandle hProcess, uint Flags, byte[] lpExeName, Int32[] lpdwSize);
@@ -78,7 +78,7 @@ namespace AntiCrack_DotNet
         private static extern uint NtSetDebugFilterState(ulong ComponentId, uint Level, bool State);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
-        private static extern void GetSystemInfo(out Structs.SYSTEM_INFO lpSystemInfo);
+        private static extern void GetSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
@@ -88,6 +88,9 @@ namespace AntiCrack_DotNet
 
         [DllImport("kernelbase.dll", SetLastError = true)]
         private static extern bool VirtualFree(IntPtr lpAddress, uint dwSize, uint dwFreeType);
+
+        [DllImport("kernel32.dll")]
+        private static extern int GetLastError();
 
         #endregion
 
@@ -470,12 +473,11 @@ namespace AntiCrack_DotNet
         /// <returns>Returns true if hardware breakpoints are detected, otherwise false.</returns>
         public static bool HardwareRegistersBreakpointsDetection()
         {
-            Structs.CONTEXT Context = new Structs.CONTEXT();
+            CONTEXT Context = new CONTEXT();
             Context.ContextFlags = CONTEXT_DEBUG_REGISTERS;
             int PID = Process.GetCurrentProcess().Id;
             foreach (ProcessThread Threads in Process.GetCurrentProcess().Threads)
             {
-                uint THREAD_GET_CONTEXT = 0x0008;
                 uint THREAD_QUERY_INFORMATION = 0x0040;
                 CLIENT_ID CI = new CLIENT_ID
                 {
@@ -538,9 +540,9 @@ namespace AntiCrack_DotNet
         {
             try
             {
-                Structs.PROCESS_BASIC_INFORMATION PBI = new Structs.PROCESS_BASIC_INFORMATION();
+                PROCESS_BASIC_INFORMATION PBI = new PROCESS_BASIC_INFORMATION();
                 uint ProcessBasicInformation = 0;
-                uint Result = Syscall ? Syscalls.SyscallNtQueryInformationProcess(ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0) : NtQueryInformationProcess(new IntPtr(-1), ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(Structs.PROCESS_BASIC_INFORMATION)), 0);
+                uint Result = Syscall ? Syscalls.SyscallNtQueryInformationProcess(ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(PROCESS_BASIC_INFORMATION)), 0) : NtQueryInformationProcess(new IntPtr(-1), ProcessBasicInformation, ref PBI, (uint)Marshal.SizeOf(typeof(PROCESS_BASIC_INFORMATION)), 0);
                 if (Result == 0)
                 {
                     int ParentPID = PBI.InheritedFromUniqueProcessId.ToInt32();
@@ -588,7 +590,7 @@ namespace AntiCrack_DotNet
         /// <returns>Returns true if debugger presence is detected, otherwise false.</returns>
         public static bool PageGuardAntiDebug()
         {
-            Structs.SYSTEM_INFO SysInfo = new Structs.SYSTEM_INFO();
+            SYSTEM_INFO SysInfo = new SYSTEM_INFO();
             GetSystemInfo(out SysInfo);
             uint MEM_COMMIT = 0x00001000;
             uint MEM_RESERVE = 0x00002000;

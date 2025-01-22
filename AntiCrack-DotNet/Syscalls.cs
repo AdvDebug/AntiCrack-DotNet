@@ -6,7 +6,6 @@ using Microsoft.Win32;
 using static AntiCrack_DotNet.Structs;
 using static AntiCrack_DotNet.Delegates;
 using static AntiCrack_DotNet.Utils;
-using System.Threading;
 
 namespace AntiCrack_DotNet
 {
@@ -68,7 +67,7 @@ namespace AntiCrack_DotNet
             {
                 if (bytes[i] == 0xB8)
                 {
-                    if (RetFoundFirst || bytes[0] == 0xE9 || bytes[0] == 0x90)
+                    if (Function != null && RetFoundFirst || bytes[0] == 0xE9 || bytes[0] == 0x90)
                     {
                         byte Common = GetCommonSyscallByte(Function);
                         if(Common != 0x00)

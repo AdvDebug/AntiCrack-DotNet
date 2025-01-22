@@ -1,11 +1,5 @@
 ﻿using System;
-using static AntiCrack_DotNet.Structs;
-using System.Runtime.InteropServices;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Collections.Generic;
-using System.Text;
-using System.Diagnostics;
 using System.Globalization;
 
 namespace AntiCrack_DotNet
@@ -114,7 +108,7 @@ namespace AntiCrack_DotNet
 
             }
 
-            public static void DisplayResult(string text, string result, string Info = "", bool result_bool = false)
+            public static void DisplayResult(string text, string result, string Info = "")
             {
                 Console.Write(text);
                 string lower_result = CultureInfo.CurrentCulture.TextInfo.ToLower(result);
@@ -246,9 +240,9 @@ namespace AntiCrack_DotNet
                 return;
             ConsoleConfig.DisplayHeader("Executing Anti Injection Tricks");
             ConsoleConfig.DisplayResult("Taking Advantage of Binary Image Signature Mitigation Policy to Prevent Non-Microsoft Binaries From Being Injected..... ", AntiInjection.SetDllLoadPolicy(), "Enforces binary image signature mitigation policy.");
-            ConsoleConfig.DisplayResult("Checking if any injected libraries are present (simple DLL path whitelist check): ", AntiInjection.IsInjectedLibrary(), false, "Checks for injected libraries.");
             ConsoleConfig.DisplayResult("Checking for Injected Threads: ", AntiInjection.CheckInjectedThreads(syscall, true), false, "Checks for injected threads that it's start address is neither committed nor from image, or not in modules range.");
-            ConsoleConfig.DisplayResult("Changing the main module info from PEB: ", AntiInjection.ChangeModuleInfo(null, true, true), true, "Changes the currently executing assembly module info from PEB including module name and base address to prevent modifications.");
+            ConsoleConfig.DisplayResult("Changing the main module info: ", AntiInjection.ChangeModuleInfo(null, Spoofs.ModuleName | Spoofs.BaseAddress | Spoofs.AddressOfEntryPoint | Spoofs.SizeOfImage | Spoofs.ImageMagic | Spoofs.NotExecutableNorDll | Spoofs.ExecutableSectionName | Spoofs.ExecutableSectionRawSize | Spoofs.ExecutableSectionRawPointer | Spoofs.ClearExecutableSectionCharacteristics | Spoofs.ExecutableSectionVirtualSize), true, "Changes the main module info including module name, base address, etc to prevent modifications, runtime lookups or some kinds of dumping.");
+            ConsoleConfig.DisplayResult("Changing the CLR module ImageMagic: ", AntiInjection.ChangeCLRModuleImageMagic(), true, "Changes the CLR module image magic in the memory of the process to try to prevent (some) external processes/software from retrieving some critical info about our assemblies while still being functional by making it seem like debugger exports is missing. (only if the module is present. if it's not present or this is AOT compiled then this will fail)");
             ConsoleConfig.DisplayResult("Checks for suspicious image base address (process hollowing): ", AntiInjection.CheckForSuspiciousBaseAddress(), false, "Checks for suspicious image base address by comparing it with the one in the main module.");
             ConsoleConfig.DisplayFooter();
         }

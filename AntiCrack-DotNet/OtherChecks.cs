@@ -2,12 +2,8 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using System.Text;
 using System.Diagnostics;
 using static AntiCrack_DotNet.Structs;
-using System.Security.Cryptography;
-using System.IO;
-using static AntiCrack_DotNet.OtherChecks;
 
 namespace AntiCrack_DotNet
 {
@@ -16,13 +12,13 @@ namespace AntiCrack_DotNet
         #region WinApi 
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_CODEINTEGRITY_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
+        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref SYSTEM_CODEINTEGRITY_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_KERNEL_DEBUGGER_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
+        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref SYSTEM_KERNEL_DEBUGGER_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
         [DllImport("ntdll.dll", SetLastError = true)]
-        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref Structs.SYSTEM_SECUREBOOT_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
+        private static extern uint NtQuerySystemInformation(uint SystemInformationClass, ref SYSTEM_SECUREBOOT_INFORMATION SystemInformation, uint SystemInformationLength, out uint ReturnLength);
 
         #endregion
 
@@ -34,8 +30,8 @@ namespace AntiCrack_DotNet
         public static bool IsUnsignedDriversAllowed(bool Syscall)
         {
             uint SystemCodeIntegrityInformation = 0x67;
-            Structs.SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new Structs.SYSTEM_CODEINTEGRITY_INFORMATION();
-            CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(Structs.SYSTEM_CODEINTEGRITY_INFORMATION));
+            SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new SYSTEM_CODEINTEGRITY_INFORMATION();
+            CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
             uint result = Syscall ? Syscalls.SyscallNtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) : NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength);
             if (NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
@@ -57,8 +53,8 @@ namespace AntiCrack_DotNet
         public static bool IsTestSignedDriversAllowed(bool Syscall)
         {
             uint SystemCodeIntegrityInformation = 0x67;
-            Structs.SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new Structs.SYSTEM_CODEINTEGRITY_INFORMATION();
-            CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(Structs.SYSTEM_CODEINTEGRITY_INFORMATION));
+            SYSTEM_CODEINTEGRITY_INFORMATION CodeIntegrityInfo = new SYSTEM_CODEINTEGRITY_INFORMATION();
+            CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
             uint result = Syscall ? Syscalls.SyscallNtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) : NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength);
             if (result >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
@@ -80,7 +76,7 @@ namespace AntiCrack_DotNet
         public static bool IsKernelDebuggingEnabled(bool Syscall)
         {
             uint SystemKernelDebuggerInformation = 0x23;
-            Structs.SYSTEM_KERNEL_DEBUGGER_INFORMATION KernelDebugInfo = new Structs.SYSTEM_KERNEL_DEBUGGER_INFORMATION();
+            SYSTEM_KERNEL_DEBUGGER_INFORMATION KernelDebugInfo = new SYSTEM_KERNEL_DEBUGGER_INFORMATION();
             KernelDebugInfo.KernelDebuggerEnabled = false;
             KernelDebugInfo.KernelDebuggerNotPresent = true;
             uint ReturnLength = 0;
@@ -103,7 +99,7 @@ namespace AntiCrack_DotNet
         public static bool IsSecureBootEnabled(bool Syscall)
         {
             uint SystemSecureBootInformation = 0x91;
-            Structs.SYSTEM_SECUREBOOT_INFORMATION SecureBoot = new Structs.SYSTEM_SECUREBOOT_INFORMATION();
+            SYSTEM_SECUREBOOT_INFORMATION SecureBoot = new SYSTEM_SECUREBOOT_INFORMATION();
             SecureBoot.SecureBootCapable = false;
             SecureBoot.SecureBootEnabled = false;
             uint ReturnLength = 0;

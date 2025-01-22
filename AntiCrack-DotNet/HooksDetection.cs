@@ -6,6 +6,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using static AntiCrack_DotNet.Structs;
+using System.Net;
 
 namespace AntiCrack_DotNet
 {
@@ -323,6 +325,8 @@ namespace AntiCrack_DotNet
         {
             try
             {
+                if (!Utils.IsReflectionEnabled(true, true))
+                    return false;
                 if (IntPtr.Size == 4)
                 {
                     MethodInfo[] ProcessMethods = typeof(Process).GetMethods();
