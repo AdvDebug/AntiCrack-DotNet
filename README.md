@@ -1,4 +1,10 @@
-# AntiCrack DotNet
+<p align="center">
+  <a href="#"><img src="https://img.shields.io/github/stars/AdvDebug/AntiCrack-DotNet?style=for-the-badge"></a>
+  <a href="#"><img src="https://img.shields.io/github/license/AdvDebug/AntiCrack-DotNet?style=for-the-badge"></a>
+  <a href="#"><img src="https://img.shields.io/badge/LANGUAGE-CSHARP-green?style=for-the-badge"></a>
+</p>
+
+# 🛡️ AntiCrack DotNet 🛡️
 A .NET Project which Contains some useful techniques to detect debugging and other harmful actions and bypass methods which can be used by crackers to analyze your assembly. (also feel free to open an issue for adding additional anti-debugging features, etc) with syscall support.
 
 you can see it's showcase <a href="https://www.youtube.com/watch?v=kQF2Q8uiH3I">here</a>. also please star the project if you found it useful, it will encourage me to continue developing it.
@@ -131,3 +137,5 @@ I think C# as AOT is being developed more and more that it's gonna be suitable f
 
 # Notice
 This Project are created for educational purposes only, also this project are licensed under MIT License. you can use the code however you please, just please use it responsibly (NOT for malware) (e.g. you are developing an anti-cheat).
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AdvDebug/AntiCrack-DotNet&type=Date)](https://star-history.com/#AdvDebug/AntiCrack-DotNet&Date)
