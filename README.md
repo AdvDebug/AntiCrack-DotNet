@@ -88,6 +88,8 @@ you can see it's showcase <a href="https://www.youtube.com/watch?v=kQF2Q8uiH3I">
 
 * Checking For Ports on the system (useful if the VM or the sandbox have no ports connected)
 
+* Checking if the Time values in KUSER_SHARED_DATA is static, which many emulators don't update regularly.
+
 * Checking for devices created by VMs or Sandboxes
 
 * Checking if AVX x64/x86 instructions are properly implemented to see if we are in an emulator.
