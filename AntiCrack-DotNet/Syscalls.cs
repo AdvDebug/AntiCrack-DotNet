@@ -353,6 +353,26 @@ namespace AntiCrack_DotNet
             return null;
         }
 
+        /// <summary>
+        /// Gets the build number using KUSER_SHARED_dATA.
+        /// </summary>
+        /// <returns>The build number.</returns>
+        private static string GetWindowsBuildNumberKUser()
+        {
+            byte[] BuildNumberBytes = new byte[4];
+            IntPtr NtBuildNumber = new IntPtr(0x7FFE0260);
+            Utils.CopyMem(BuildNumberBytes, NtBuildNumber, false);
+            try
+            {
+                uint BuildNumber = BitConverter.ToUInt32(BuildNumberBytes, 0);
+                return BuildNumber.ToString();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
 
         /// <summary>
         /// Searches for the return value from the function bytes.
@@ -365,11 +385,14 @@ namespace AntiCrack_DotNet
         }
 
         /// <summary>
-        /// Searches for the return value from the function bytes.
+        /// Gets the best source for the BuildNumber that is harder to tamper with.
         /// </summary>
         /// <returns>The most suitable build number.</returns>
-        public static string GetMostMatching(string WinAPI, string WMI, string Registry)
+        public static string GetMostMatching(string WinAPI, string WMI, string Registry, string KUSER)
         {
+            if (!string.IsNullOrWhiteSpace(KUSER))
+                return KUSER;
+
             if (Tampered)
             {
                 if (WinAPI == WMI)
@@ -409,6 +432,7 @@ namespace AntiCrack_DotNet
             string WinAPI = GetWindowsBuildNumberWinAPI();
             string WMI = GetWindowsBuildNumberWMI();
             string Registry = GetWindowsBuildNumberReg();
+            string KUSER = GetWindowsBuildNumberKUser();
             if (IsTampered(WinAPI, WMI, Registry))
             {
                 Tampered = true;
@@ -427,7 +451,7 @@ namespace AntiCrack_DotNet
                     ForceExit();
                 }
             }
-            return GetMostMatching(WinAPI, WMI, Registry);
+            return GetMostMatching(WinAPI, WMI, Registry, KUSER);
         }
 
         /// <summary>
@@ -506,10 +530,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQueryInformationProcess Executed = (SysNtQueryInformationProcess)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess));
                     uint Result = Executed(new IntPtr(-1), ProcessInfoClass, out ProcessInfo, nSize, out ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -528,10 +551,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQueryInformationProcess2 Executed = (SysNtQueryInformationProcess2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess2));
                     uint Result = Executed(new IntPtr(-1), ProcessInfoClass, out ProcessInfo, nSize, ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -550,10 +572,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQueryInformationProcess3 Executed = (SysNtQueryInformationProcess3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationProcess3));
                     uint Result = Executed(new IntPtr(-1), ProcessInfoClass, ref ProcessInfo, nSize, ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -570,7 +591,6 @@ namespace AntiCrack_DotNet
                 {
                     SysNtClose Executed = (SysNtClose)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtClose));
                     bool Result = Executed(Handle);
-                    FreeCode(Syscall);
                     return Result;
                 }
                 finally
@@ -591,10 +611,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQuerySystemInformation Executed = (SysNtQuerySystemInformation)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation));
                     uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -612,10 +631,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQuerySystemInformation2 Executed = (SysNtQuerySystemInformation2)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation2));
                     uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -633,10 +651,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQuerySystemInformation3 Executed = (SysNtQuerySystemInformation3)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQuerySystemInformation3));
                     uint Result = Executed(SystemInformationClass, ref SystemInformation, SystemInformationLength, out ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -654,10 +671,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQueryVirtualMemory Executed = (SysNtQueryVirtualMemory)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryVirtualMemory));
                     uint Result = Executed(ProcessHandle, BaseAddress, MemoryInformationClass, ref MemoryInformation, MemoryInformationLength, out ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
@@ -674,10 +690,9 @@ namespace AntiCrack_DotNet
                 {
                     SysNtQueryInformationThread Executed = (SysNtQueryInformationThread)Marshal.GetDelegateForFunctionPointer(Syscall, typeof(SysNtQueryInformationThread));
                     int Result = Executed(ThreadHandle, ThreadInformationClass, ref ThreadInformation, ThreadInformationLength, ReturnLength);
-                    FreeCode(Syscall);
                     return Result;
                 }
-                catch
+                finally
                 {
                     FreeCode(Syscall);
                 }
