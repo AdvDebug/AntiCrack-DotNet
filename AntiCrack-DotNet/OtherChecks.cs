@@ -34,7 +34,7 @@ namespace AntiCrack_DotNet
             CodeIntegrityInfo.Length = (uint)Marshal.SizeOf(typeof(SYSTEM_CODEINTEGRITY_INFORMATION));
             uint ReturnLength = 0;
             uint result = Syscall ? Syscalls.SyscallNtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) : NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength);
-            if (NtQuerySystemInformation(SystemCodeIntegrityInformation, ref CodeIntegrityInfo, (uint)Marshal.SizeOf(CodeIntegrityInfo), out ReturnLength) >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
+            if (result >= 0 && ReturnLength == (uint)Marshal.SizeOf(CodeIntegrityInfo))
             {
                 uint CODEINTEGRITY_OPTION_ENABLED = 0x01;
                 if ((CodeIntegrityInfo.CodeIntegrityOptions & CODEINTEGRITY_OPTION_ENABLED) == CODEINTEGRITY_OPTION_ENABLED)
