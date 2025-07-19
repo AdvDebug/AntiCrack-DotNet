@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using static AntiCrack_DotNet.Utils;
 using static AntiCrack_DotNet.Delegates;
+using System.Linq;
 
 namespace AntiCrack_DotNet
 {
@@ -524,6 +525,35 @@ namespace AntiCrack_DotNet
                 {
                     return false;
                 }
+            }
+
+            /// <summary>
+            /// Checks for the KUSER_SHARED_DATA "InterruptTime" and "SystemTime" values which many emulators don't update regularly.
+            /// </summary>
+            /// <returns>returns true if the values are static which indicates an emulator, otherwise false.</returns>
+            public static bool IsKUserSharedDataTimeStatic()
+            {
+                byte[] Old = new byte[8];
+                byte[] Current = new byte[8];
+                IntPtr InterruptTime = new IntPtr(0x7FFE0008);
+                IntPtr SystemTime = new IntPtr(0x7FFE0014);
+                Utils.CopyMem(Old, InterruptTime, false);
+                Thread.Sleep(1000);
+                Utils.CopyMem(Current, InterruptTime, false);
+                if(Old.SequenceEqual(Current))
+                {
+                    return true;
+                }
+
+                Utils.CopyMem(Old, SystemTime, false);
+                Thread.Sleep(1000);
+                Utils.CopyMem(Current, SystemTime, false);
+
+                if (Old.SequenceEqual(Current))
+                {
+                    return true;
+                }
+                return false;
             }
         }
     }
